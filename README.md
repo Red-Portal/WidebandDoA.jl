@@ -1,4 +1,4 @@
-# WideBandDOA
+# WidebandDoA
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Red-Portal.github.io/WideBandDOA.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Red-Portal.github.io/WideBandDOA.jl/dev/)
