@@ -11,7 +11,7 @@ using Tullio
 
 #include("inference/slice.jl")
 #include("inference/imhrwmh.jl")
-#include("linalg/striped_matrix.jl")
+include("linalg/striped_matrix.jl")
 
 abstract type AbstractDelayFilter end
 
@@ -22,7 +22,7 @@ Returns the fourier domain fractional delay filters as a matrix
     H ∈ R^{ N × M × K }
 The fractional delay filters are the ones in:
 """
-function array_delay(filter, Δn) end
+function array_delay end
 
 include("models/filters.jl")
 #include("models/normalgamma.jl")
