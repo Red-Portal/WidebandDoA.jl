@@ -1,6 +1,9 @@
-using WideBandDOA
-using Test
 
-@testset "WideBandDOA.jl" begin
-    # Write your tests here.
-end
+using Test
+using WidebandDoA
+
+using FFTW
+using Statistics
+using Tullio
+
+include("filters.jl")
