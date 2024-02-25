@@ -1,16 +1,16 @@
-using WideBandDOA
+using WidebandDoA
 using Documenter
 
-DocMeta.setdocmeta!(WideBandDOA, :DocTestSetup, :(using WideBandDOA); recursive=true)
+DocMeta.setdocmeta!(WidebandDoA, :DocTestSetup, :(using WidebandDoA); recursive=true)
 
 makedocs(;
-    modules=[WideBandDOA],
+    modules=[WidebandDoA],
     authors="Ray Kim <msca8h@naver.com> and contributors",
-    repo="https://github.com/Red-Portal/WideBandDOA.jl/blob/{commit}{path}#{line}",
-    sitename="WideBandDOA.jl",
+    repo="https://github.com/Red-Portal/WidebandDoA.jl/blob/{commit}{path}#{line}",
+    sitename="WidebandDoA.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://Red-Portal.github.io/WideBandDOA.jl",
+        canonical="https://Red-Portal.github.io/WidebandDoA.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -20,6 +20,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/Red-Portal/WideBandDOA.jl",
+    repo="github.com/Red-Portal/WidebandDoA.jl",
     devbranch="main",
 )
