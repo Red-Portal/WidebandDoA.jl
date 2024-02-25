@@ -39,11 +39,12 @@ end
 
     idx_block = collect(partition(1:blocksize*n_blocks, blocksize))
 
+    norm_A = norm(A)
     @testset "R format" begin
         @assert ishermitian(A)
-        @assert(norm(aformat(A, n_blocks, blocksize) - D) < 1e-3)
-        @assert norm(diag(A[idx_block[1],idx_block[2]]) - D[:,1,2]) < 1e-3
-        @assert norm(diag(A[idx_block[2],idx_block[2]]) - D[:,2,2]) < 1e-3
+        @assert(norm(aformat(A, n_blocks, blocksize) - D) < norm_A*1e-3)
+        @assert norm(diag(A[idx_block[1],idx_block[2]]) - D[:,1,2]) < norm_A*1e-3
+        @assert norm(diag(A[idx_block[2],idx_block[2]]) - D[:,2,2]) < norm_A*1e-3
     end
 
     @testset "inv_hermitian_striped_matrix" begin
@@ -53,8 +54,8 @@ end
         A⁻¹ = rformat(D⁻¹)
 
         @testset "inverse" begin
-            @test norm(A⁻¹*A - I)    < 1e-3
-            @test norm(inv(A)*A - I) < 1e-3
+            @test norm(A⁻¹*A - I)    < norm_A*1e-3
+            @test norm(inv(A)*A - I) < norm_A*1e-3
         end
 
         @testset "log determinant" begin
