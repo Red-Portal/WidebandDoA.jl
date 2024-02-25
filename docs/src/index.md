@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = WideBandDOA
+CurrentModule = WidebandDoA
 ```
 
-# WideBandDOA
+# WidebandDoA
 
-Documentation for [WideBandDOA](https://github.com/Red-Portal/WideBandDOA.jl).
+Documentation for [WidebandDoA](https://github.com/Red-Portal/WidebandDoA.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [WideBandDOA]
+Modules = [WidebandDoA]
 ```
