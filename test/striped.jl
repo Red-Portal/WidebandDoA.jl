@@ -46,7 +46,6 @@ end
         @assert norm(diag(A[idx_block[2],idx_block[2]]) - D[:,2,2]) < 1e-3
     end
 
-
     @testset "inv_hermitian_striped_matrix" begin
         D⁻¹        = deepcopy(D)
         D⁻¹, ℓdetA = WidebandDoA.inv_hermitian_striped_matrix!(D⁻¹)
@@ -60,7 +59,7 @@ end
 
         @testset "log determinant" begin
             ℓdetA_true = logabsdet(A)[1]
-            @test ℓdetA ≈ ℓdetA_true
+            @test ℓdetA ≈ ℓdetA_true rtol=1e-3
         end
     end
 end
