@@ -77,6 +77,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using WideBandDOA
-          DocMeta.setdocmeta!(WideBandDOA, :DocTestSetup, :(using WideBandDOA); recursive=true)
-          doctest(WideBandDOA)
+          using WideBandDoA
+          DocMeta.setdocmeta!(WideBandDoA, :DocTestSetup, :(using WideBandDoA); recursive=true)
+          doctest(WideBandDoA)
