@@ -35,8 +35,11 @@ function array_delay end
 
 abstract type AbstractWidebandModel <: AbstractMCMC.AbstractModel end
 
+include("model/model.jl")
 include("model/filters.jl")
+include("model/interface.jl")
 include("model/likelihood.jl")
+include("model/sampling.jl")
 
 export WidebandNormalGamma, UniformNormalLocalProposal
 
