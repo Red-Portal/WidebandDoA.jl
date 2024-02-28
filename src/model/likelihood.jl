@@ -26,7 +26,7 @@ function doa_normalgamma_likelihood(
     K = length(ϕ)
 
     if K == 0
-        -(N*M/2 + α)*log(β/2 + yᵀy)
+        -(N*M/2 + β)*log(α/2 + yᵀy)
     else
         τ  = inter_sensor_delay(ϕ, Δx, c)
         Δn = τ*fs
@@ -54,7 +54,7 @@ function doa_normalgamma_likelihood(
             return -Inf
         end
 
-        -(N*M/2 + α)*log(β/2 + yᴴImP⊥y) + ℓdetfactor/2
+        -(N*M/2 + β)*log(α/2 + yᴴImP⊥y) + ℓdetfactor/2
     end
 end
 
@@ -84,7 +84,7 @@ function ReversibleJump.logdensity(
     else
         λ      = exp.(ℓλ)
         ℓp_ϕ   = k*logpdf(Uniform(-π/2, π/2), 0.0)
-        ℓp_λ   = sum(Base.Fix1(logpdf, Gamma(alpha_lambda, beta_lambda)), λ)
+        ℓp_λ   = sum(Base.Fix1(logpdf, InverseGamma(alpha_lambda, beta_lambda)), λ)
         ℓjac_λ = sum(ℓλ)
         ℓp_y   =  doa_normalgamma_likelihood(
             delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c,  fs   
