@@ -89,6 +89,6 @@ function ReversibleJump.logdensity(
         ℓp_y   =  doa_normalgamma_likelihood(
             delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c, fs   
         )
-        ℓp_y + ℓp_ϕ + ℓp_λ + ℓjac_λ + ℓp_k
+        ℓp_y + ℓp_ϕ + ℓp_λ + ℓp_k
     end
 end
