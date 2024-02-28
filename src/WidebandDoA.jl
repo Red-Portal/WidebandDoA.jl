@@ -1,17 +1,26 @@
 
 module WidebandDoA
 
+using AbstractMCMC
+using Accessors
+using Base
 using Distributions
+using FFTW
 using LinearAlgebra
 using Random 
+using ReversibleJump
+using SimpleUnPack
 using Statistics
 
 using LoopVectorization
 using Tullio
 
-#include("inference/slice.jl")
+include("inference/gibbs.jl")
+include("inference/slice.jl")
 #include("inference/imhrwmh.jl")
 include("linalg/striped_matrix.jl")
+
+export Slice, SliceSteppingOut, SliceDoublingOut
 
 abstract type AbstractDelayFilter end
 
@@ -24,7 +33,11 @@ The fractional delay filters are the ones in:
 """
 function array_delay end
 
+abstract type AbstractWidebandModel <: AbstractMCMC.AbstractModel end
+
 include("models/filters.jl")
-#include("models/normalgamma.jl")
+include("models/normalgamma.jl")
+
+export WidebandNormalGamma, UniformNormalLocalProposal
 
 end
