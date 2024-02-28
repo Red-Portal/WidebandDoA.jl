@@ -27,7 +27,8 @@ abstract type AbstractDelayFilter end
 """
     array_delay(filter, Δn)
 
-Returns the fourier domain fractional delay filters as a matrix $H \in \mathbb{R}^{ N \times M \times K }$
+Returns the fourier domain fractional delay filters as a matrix
+\$H \\in \\mathbb{R}^{ N \\times M \\times K }\$.
 The fractional delay filters are the ones in:
 """
 function array_delay end
