@@ -32,8 +32,8 @@ end
     c            = 1500
     fs           = 1000
     delay_filter = WidebandDoA.WindowedSinc(n_snapshots)
-    α, β         = 2.0, 5.0
-    α_λ, β_λ     = 2.0, 5.0
+    α, β         = 5.0, 2.0
+    α_λ, β_λ     = 5.0, 2.0
     order_prior  = truncated(Poisson(2), 0, 4)
 
     prior = WidebandDoA.WidebandNormalGammaPrior(
@@ -77,7 +77,7 @@ end
             n_pvalue_samples = 32
             n_rank_samples   = 100
             n_mcmc_steps     = 10
-            n_mcmc_thin      = 4
+            n_mcmc_thin      = 1
             test             = ExactRankTest(n_rank_samples, n_mcmc_steps, n_mcmc_thin)
             statistics       = θ -> [length(θ)]
             

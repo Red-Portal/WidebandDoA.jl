@@ -87,7 +87,7 @@ function ReversibleJump.logdensity(
         ℓp_λ   = sum(Base.Fix1(logpdf, InverseGamma(alpha_lambda, beta_lambda)), λ)
         ℓjac_λ = sum(ℓλ)
         ℓp_y   =  doa_normalgamma_likelihood(
-            delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c,  fs   
+            delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c, fs   
         )
         ℓp_y + ℓp_ϕ + ℓp_λ + ℓjac_λ + ℓp_k
     end
