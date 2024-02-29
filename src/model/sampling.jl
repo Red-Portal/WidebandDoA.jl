@@ -62,7 +62,7 @@ function sample_signal(
     z_a = randn(rng, N, k)
     z_ϵ = randn(rng, N, M)
 
-    Tullio.@tullio a[n,k] := λ[k]*z_a[n,k]
+    Tullio.@tullio a[n,k] := sqrt(λ[k])*z_a[n,k]
     A = fft(a, 1)
 
     Tullio.@tullio HA[n,m] := H[n,m,k] * A[n,k]
