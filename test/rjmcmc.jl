@@ -77,7 +77,7 @@ end
             n_pvalue_samples = 32
             n_rank_samples   = 100
             n_mcmc_steps     = 10
-            n_mcmc_thin      = 1
+            n_mcmc_thin      = 32
             test             = ExactRankTest(n_rank_samples, n_mcmc_steps, n_mcmc_thin)
             statistics       = θ -> [length(θ)]
             
