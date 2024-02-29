@@ -1,6 +1,6 @@
 
 @testset "filters" begin
-    N = 64
+    N = 512
     x = randn(N)
     X = fft(x)
 
