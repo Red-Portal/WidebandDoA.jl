@@ -11,7 +11,7 @@ function doa_normalgamma_likelihood(
     c, 
     fs
 ) where {T <: Real}
-    # Normal-gamma prior
+    # Normal-(inverse-)gamma prior
     #
     # W = diagm(λ)
     #
@@ -91,6 +91,6 @@ function ReversibleJump.logdensity(
         ℓp_y   = doa_normalgamma_likelihood(
             delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c, fs   
         )
-        ℓp_y + ℓp_ϕ + ℓp_λ + ℓp_k + ℓjac_λ
+        ℓp_y + ℓp_ϕ + ℓp_k + ℓp_λ + ℓjac_λ
     end
 end

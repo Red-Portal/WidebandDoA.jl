@@ -64,7 +64,8 @@ end
 function ReversibleJump.transition_mcmc(
     rng    ::Random.AbstractRNG,
     sampler::AbstractSliceSampling,
-    model, θ::AbstractVector{WidebandNormalGammaParam{T}}
+    model,
+    θ      ::AbstractVector{WidebandNormalGammaParam{T}}
 ) where {T<:Real}
     window_base     = sampler.window
     order           = length(θ)

@@ -25,7 +25,7 @@ function MCMCTesting.markovchain_transition(
     state.param
 end
 
-@testset "rjmcmc known snr" begin
+@testset "WidebandNormalGamma rjmcmc" begin
     n_snapshots  = 16
     n_sensors    = 8
     Δx           = range(0, n_sensors*0.5; length=n_sensors)
