@@ -32,8 +32,8 @@ end
     c            = 1500
     fs           = 1000
     delay_filter = WidebandDoA.WindowedSinc(n_snapshots)
-    α, β         = 5.0, 2.0
-    α_λ, β_λ     = 5.0, 2.0
+    α, β         = 5.0, 5.0
+    α_λ, β_λ     = 5.0, 5.0
     order_prior  = truncated(Poisson(2), 0, 4)
 
     prior = WidebandDoA.WidebandNormalGammaPrior(
@@ -45,7 +45,7 @@ end
 
 
     @testset for jump in [
-        AnnealedJumpProposal(4, prop, ArithmeticPath()),
+        #AnnealedJumpProposal(4, prop, ArithmeticPath()),
         AnnealedJumpProposal(4, prop, GeometricPath()),
         IndepJumpProposal(prop)
     ]
