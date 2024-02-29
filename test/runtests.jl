@@ -14,8 +14,8 @@ using StableRNGs
 using Statistics
 using Tullio
 
-#include("filters.jl")
-#include("striped.jl")
+include("filters.jl")
+include("striped.jl")
 
 function MCMCTesting.sample_joint(
     rng  ::Random.AbstractRNG,
@@ -28,4 +28,4 @@ function MCMCTesting.sample_joint(
 end
 
 include("mcmc.jl")
-#include("rjmcmc.jl")
+include("rjmcmc.jl")

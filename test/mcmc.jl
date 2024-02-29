@@ -26,7 +26,9 @@ end
     )
 
     @testset for mcmc in [
-        SliceSteppingOut([1.0, 1.0])
+        Slice([1.0, 1.0]),
+        SliceSteppingOut([1.0, 1.0]),
+        SliceDoublingOut([1.0, 1.0]),
     ]
         @testset "determinism" begin
             n_mcmc_steps = 10
