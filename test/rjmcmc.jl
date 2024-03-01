@@ -1,14 +1,4 @@
 
-function MCMCTesting.sample_joint(
-    rng  ::Random.AbstractRNG,
-    model::WidebandDoA.WidebandNormalGammaPrior
-)
-    all_params = WidebandDoA.sample_params(rng, model)
-    y          = WidebandDoA.sample_signal(rng, model, all_params)
-    params     = @. WidebandDoA.WidebandNormalGammaParam(all_params.phi, log(all_params.lambda))
-    params, y
-end
-
 function MCMCTesting.markovchain_transition(
     rng   ::Random.AbstractRNG,
     model ::WidebandDoA.WidebandNormalGammaPrior,
@@ -26,15 +16,15 @@ function MCMCTesting.markovchain_transition(
 end
 
 @testset "WidebandNormalGamma rjmcmc" begin
-    n_snapshots  = 16
-    n_sensors    = 8
+    n_snapshots  = 32
+    n_sensors    = 32
     Δx           = range(0, n_sensors*0.5; length=n_sensors)
     c            = 1500
     fs           = 1000
     delay_filter = WidebandDoA.WindowedSinc(n_snapshots)
     α, β         = 5.0, 2.0
     α_λ, β_λ     = 5.0, 2.0
-    order_prior  = truncated(Poisson(2), 0, 4)
+    order_prior  = Poisson(2)
 
     prior = WidebandDoA.WidebandNormalGammaPrior(
         n_snapshots, delay_filter, Δx, c, fs, order_prior, α, β, α_λ, β_λ
@@ -45,7 +35,7 @@ end
 
 
     @testset for jump in [
-        #AnnealedJumpProposal(4, prop, ArithmeticPath()),
+        AnnealedJumpProposal(4, prop, ArithmeticPath()),
         AnnealedJumpProposal(4, prop, GeometricPath()),
         IndepJumpProposal(prop)
     ]
