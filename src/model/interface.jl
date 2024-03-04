@@ -78,11 +78,13 @@ function ReversibleJump.transition_mcmc(
     ϕ               = T[θj.phi       for θj in θ]
     ℓλ              = T[θj.loglambda for θj in θ]
     θ_flat          = vcat(ϕ, ℓλ)
-    θ_flat, ℓp, _   = slice_sampling(rng, sampler_adapted, model_wrapper, θ_flat)
-    θ               = WidebandNormalGammaParam{T}[
+
+    θ_flat, ℓp, acc_rate = slice_sampling(rng, sampler_adapted, model_wrapper, θ_flat)
+
+    θ = WidebandNormalGammaParam{T}[
         WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
     ]
-    θ, ℓp
+    θ, ℓp, (mcmc_acceptance_rate=acc_rate,)
 end
 
 struct WidebandNormalGammaMetropolis{
@@ -135,6 +137,6 @@ function ReversibleJump.transition_mcmc(
 
     avg_acc = n_acc > 0 ? ∑acc/n_acc : 1
 
-    θ, ℓp
+    θ, ℓp, (mcmc_acceptance_rate=avg_acc,)
 end
 

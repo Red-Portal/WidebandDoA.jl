@@ -5,8 +5,8 @@ function MCMCTesting.markovchain_transition(
     mcmc ::Union{<:WidebandDoA.AbstractSliceSampling, <:WidebandDoA.AbstractMetropolis},
     θ, y
 )
-    joint = WidebandNormalGamma(y, model)
-    θ, _  = ReversibleJump.transition_mcmc(rng, mcmc, joint, θ)
+    joint    = WidebandNormalGamma(y, model)
+    θ, _, _  = ReversibleJump.transition_mcmc(rng, mcmc, joint, θ)
     θ
 end
 
