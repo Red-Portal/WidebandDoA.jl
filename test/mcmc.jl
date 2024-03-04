@@ -2,7 +2,7 @@
 function MCMCTesting.markovchain_transition(
     rng  ::Random.AbstractRNG,
     model::WidebandDoA.WidebandNormalGammaPrior,
-    mcmc ::WidebandDoA.AbstractSliceSampling,
+    mcmc ::Union{<:WidebandDoA.AbstractSliceSampling, <:MetropolisHastings},
     θ, y
 )
     joint = WidebandNormalGamma(y, model)
@@ -29,6 +29,7 @@ end
         Slice([1.0, 1.0]),
         SliceSteppingOut([1.0, 1.0]),
         SliceDoublingOut([1.0, 1.0]),
+        MetropolisHastings(Normal(0., 2), 1.0, 0.2)
     ]
         @testset "determinism" begin
             n_mcmc_steps = 10

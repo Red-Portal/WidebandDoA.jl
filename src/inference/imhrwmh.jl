@@ -1,8 +1,8 @@
 
-function ReversibleJump.logdensity(obj::GibbsObjective, θi)
-    @unpack model, idx, θ = obj
-    θ′ = @set θ[idx] = θi
-    logdensity(model, θ′)
+struct MetropolisHastings{D <: UnivariateDistribution, F <: Real}
+    imh_proposal::D
+    rwmh_sigma  ::F
+    imh_weight  ::F
 end
 
 function transition_imh(rng::Random.AbstractRNG, model, q, θ)
@@ -11,10 +11,11 @@ function transition_imh(rng::Random.AbstractRNG, model, q, θ)
     ℓπ = logdensity(model, θ)
     ℓw′ = ℓπ′ - logpdf(q, θ′)
     ℓw = ℓπ - logpdf(q, θ)
-    if rand(rng) < exp(ℓw′ - ℓw)
-        θ′, ℓπ′
+    α  = exp(ℓw′ - ℓw)
+    if rand(rng) < α
+        θ′, ℓπ′, α
     else
-        θ, ℓπ
+        θ, ℓπ, α
     end
 end
 
@@ -23,10 +24,11 @@ function transition_rwmh(rng::Random.AbstractRNG, model, σ, θ::Real)
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
     ℓπ = logdensity(model, θ)
-    if rand(rng) < exp(ℓπ′ - ℓπ)
-        θ′, ℓπ′
+    α  = exp(ℓπ′ - ℓπ)
+    if rand(rng) < α
+        θ′, ℓπ′, α
     else
-        θ, ℓπ
+        θ, ℓπ, α
     end
 end
 
@@ -35,9 +37,10 @@ function transition_rwmh(rng::Random.AbstractRNG, model, σ, θ::AbstractVector)
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
     ℓπ = logdensity(model, θ)
-    if rand(rng) < exp(ℓπ′ - ℓπ)
-        θ′, ℓπ′
+    α  = exp(ℓπ′ - ℓπ)
+    if rand(rng) < α
+        θ′, ℓπ′, α
     else
-        θ, ℓπ
+        θ, ℓπ, α
     end
 end

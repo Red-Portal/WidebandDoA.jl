@@ -33,10 +33,9 @@ end
     prop  = UniformNormalLocalProposal(0.0, 1.0)
     mcmc  = SliceSteppingOut([1.0, 1.0])
 
-
     @testset for jump in [
-        AnnealedJumpProposal(4, prop, ArithmeticPath()),
-        AnnealedJumpProposal(4, prop, GeometricPath()),
+        AnnealedJumpProposal(prop, ArithmeticPath(4)),
+        AnnealedJumpProposal(prop, GeometricPath(4)),
         IndepJumpProposal(prop)
     ]
         rjmcmc = ReversibleJumpMCMC(order_prior, jump, mcmc)

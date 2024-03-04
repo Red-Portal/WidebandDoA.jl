@@ -46,13 +46,13 @@ function ReversibleJump.local_deleteat(
     deleteat!(copy(θ), j), θ[j]
 end
 
-struct WidebandNormalGammaConstantOrder{M}
+struct WidebandNormalGammaFlat{M}
     model::M
     order::Int
 end
 
 function logdensity(
-    wrapper::WidebandNormalGammaConstantOrder,
+    wrapper::WidebandNormalGammaFlat,
     θ      ::AbstractVector{T}
 ) where {T <: Real}
     model  = wrapper.model
@@ -74,7 +74,7 @@ function ReversibleJump.transition_mcmc(
         fill(last(window_base), order)
     )
     sampler_adapted = @set sampler.window = window
-    model_wrapper   = WidebandNormalGammaConstantOrder(model, order)
+    model_wrapper   = WidebandNormalGammaFlat(model, order)
     ϕ               = T[θj.phi       for θj in θ]
     ℓλ              = T[θj.loglambda for θj in θ]
     θ_flat          = vcat(ϕ, ℓλ)
@@ -82,6 +82,59 @@ function ReversibleJump.transition_mcmc(
     θ               = WidebandNormalGammaParam{T}[
         WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
     ]
+    θ, ℓp
+end
+
+function ReversibleJump.transition_mcmc(
+    rng    ::Random.AbstractRNG,
+    sampler::MetropolisHastings,
+    model,
+    θ      ::AbstractVector{WidebandNormalGammaParam{T}}
+) where {T<:Real}
+    SimpleUnPack.@unpack imh_proposal, rwmh_sigma, imh_weight = sampler
+
+    order         = length(θ)
+    model_wrapper = WidebandNormalGammaFlat(model, order)
+
+    ϕ       = T[θj.phi       for θj in θ]
+    ℓλ      = T[θj.loglambda for θj in θ]
+    θ_flat  = vcat(ϕ, ℓλ)
+    ϕ_range = 1:length(ϕ)
+    ℓλ_range = length(ϕ)+1:length(θ_flat)
+
+    ℓp    = logdensity(model_wrapper, θ_flat)
+    ∑acc  = 0.0
+    n_acc = 0
+
+    for ϕ_idx in ϕ_range
+        model_gibbs = GibbsObjective(model_wrapper, ϕ_idx, θ_flat)
+        θ′idx, ℓp, acc = if rand(rng, Bernoulli(imh_weight))
+            transition_imh(rng, model_gibbs, Uniform(-π/2, π/2), θ_flat[ϕ_idx])
+        else
+            transition_rwmh(rng, model_gibbs, rwmh_sigma, θ_flat[ϕ_idx])
+        end
+        ∑acc  += acc
+        n_acc += 1
+        θ_flat[ϕ_idx] = θ′idx
+    end
+
+    for ℓλ_idx in ℓλ_range
+        model_gibbs = GibbsObjective(model_wrapper, ℓλ_idx, θ_flat)
+        θ′idx, ℓp, acc = if rand(rng, Bernoulli(imh_weight))
+            transition_imh(rng, model_gibbs, imh_proposal, θ_flat[ℓλ_idx])
+        else
+            transition_rwmh(rng, model_gibbs, rwmh_sigma, θ_flat[ℓλ_idx])
+        end
+        ∑acc  += acc
+        n_acc += 1
+        θ_flat[ℓλ_idx] = θ′idx
+    end
+
+    θ = WidebandNormalGammaParam{T}[
+        WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
+    ]
+
+    avg_acc = n_acc > 0 ? ∑acc/n_acc : 1
     θ, ℓp
 end
 

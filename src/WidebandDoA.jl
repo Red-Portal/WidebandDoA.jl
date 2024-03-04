@@ -17,10 +17,10 @@ using Tullio
 
 include("inference/gibbs.jl")
 include("inference/slice.jl")
-#include("inference/imhrwmh.jl")
+include("inference/imhrwmh.jl")
 include("linalg/striped_matrix.jl")
 
-export Slice, SliceSteppingOut, SliceDoublingOut
+export Slice, SliceSteppingOut, SliceDoublingOut, MetropolisHastings
 
 abstract type AbstractDelayFilter end
 
