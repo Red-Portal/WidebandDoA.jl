@@ -1,11 +1,45 @@
 
-struct MetropolisHastings{D <: UnivariateDistribution, F <: Real}
-    imh_proposal::D
-    rwmh_sigma  ::F
-    imh_weight  ::F
+abstract type AbstractMetropolis <: AbstractMCMC.AbstractSampler end
+
+struct RandomWalkMetropolis{F <: Real} <: AbstractMetropolis
+    sigma::F
 end
 
-function transition_imh(rng::Random.AbstractRNG, model, q, θ)
+struct IndependentMetropolis{D <: UnivariateDistribution} <: AbstractMetropolis
+    proposal::D
+end
+
+struct MetropolisMixture{
+    F    <: Real,
+    IMH  <: IndependentMetropolis,
+    RWMH <: RandomWalkMetropolis,
+} <: AbstractMetropolis
+    imh_weight::F
+    imh       ::IMH
+    rwmh      ::RWMH
+
+    function MetropolisMixture(
+        imh       ::IndependentMetropolis,
+        rwmh      ::RandomWalkMetropolis,
+        imh_weight::Real = 0.2,
+    )
+        @assert 0 ≤ imh_weight ≤ 1
+        new{typeof(imh_weight), typeof(imh), typeof(rwmh)}(imh_weight, imh, rwmh)
+    end
+end
+
+function transition_mh(rng::Random.AbstractRNG, kernel::MetropolisMixture, model, θ)
+    if rand(rng, Bernoulli(kernel.imh_weight))
+        transition_mh(rng, kernel.imh, model, θ)
+    else
+        transition_mh(rng, kernel.rwmh, model, θ)
+    end
+end
+
+function transition_mh(
+    rng::Random.AbstractRNG, kernel::IndependentMetropolis, model, θ
+)
+    q  = kernel.proposal
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
     ℓπ = logdensity(model, θ)
@@ -19,7 +53,10 @@ function transition_imh(rng::Random.AbstractRNG, model, q, θ)
     end
 end
 
-function transition_rwmh(rng::Random.AbstractRNG, model, σ, θ::Real)
+function transition_mh(
+    rng::Random.AbstractRNG, kernel::RandomWalkMetropolis, model, θ::Real
+)
+    σ  = kernel.sigma
     q  = Normal(θ, σ)
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
@@ -32,7 +69,10 @@ function transition_rwmh(rng::Random.AbstractRNG, model, σ, θ::Real)
     end
 end
 
-function transition_rwmh(rng::Random.AbstractRNG, model, σ, θ::AbstractVector)
+function transition_mh(
+    rng::Random.AbstractRNG, kernel::RandomWalkMetropolis, model, θ::AbstractVector
+)
+    σ  = kernel.sigma
     q  = MvNormal(θ, σ)
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)

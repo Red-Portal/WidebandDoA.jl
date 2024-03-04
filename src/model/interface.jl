@@ -85,13 +85,20 @@ function ReversibleJump.transition_mcmc(
     θ, ℓp
 end
 
+struct WidebandNormalGammaMetropolis{
+    LK <: AbstractMetropolis, PK <: AbstractMetropolis
+} <: AbstractMetropolis
+    phi_kernel      ::PK
+    loglambda_kernel::LK
+end
+
 function ReversibleJump.transition_mcmc(
     rng    ::Random.AbstractRNG,
-    sampler::MetropolisHastings,
+    sampler::WidebandNormalGammaMetropolis,
     model,
     θ      ::AbstractVector{WidebandNormalGammaParam{T}}
 ) where {T<:Real}
-    SimpleUnPack.@unpack imh_proposal, rwmh_sigma, imh_weight = sampler
+    SimpleUnPack.@unpack phi_kernel, loglambda_kernel = sampler
 
     order         = length(θ)
     model_wrapper = WidebandNormalGammaFlat(model, order)
@@ -108,11 +115,7 @@ function ReversibleJump.transition_mcmc(
 
     for ϕ_idx in ϕ_range
         model_gibbs = GibbsObjective(model_wrapper, ϕ_idx, θ_flat)
-        θ′idx, ℓp, acc = if rand(rng, Bernoulli(imh_weight))
-            transition_imh(rng, model_gibbs, Uniform(-π/2, π/2), θ_flat[ϕ_idx])
-        else
-            transition_rwmh(rng, model_gibbs, rwmh_sigma, θ_flat[ϕ_idx])
-        end
+        θ′idx, ℓp, acc = transition_mh(rng, phi_kernel, model_gibbs, θ_flat[ϕ_idx])
         ∑acc  += acc
         n_acc += 1
         θ_flat[ϕ_idx] = θ′idx
@@ -120,11 +123,7 @@ function ReversibleJump.transition_mcmc(
 
     for ℓλ_idx in ℓλ_range
         model_gibbs = GibbsObjective(model_wrapper, ℓλ_idx, θ_flat)
-        θ′idx, ℓp, acc = if rand(rng, Bernoulli(imh_weight))
-            transition_imh(rng, model_gibbs, imh_proposal, θ_flat[ℓλ_idx])
-        else
-            transition_rwmh(rng, model_gibbs, rwmh_sigma, θ_flat[ℓλ_idx])
-        end
+        θ′idx, ℓp, acc = transition_mh(rng, loglambda_kernel, model_gibbs, θ_flat[ℓλ_idx])
         ∑acc  += acc
         n_acc += 1
         θ_flat[ℓλ_idx] = θ′idx
@@ -135,6 +134,7 @@ function ReversibleJump.transition_mcmc(
     ]
 
     avg_acc = n_acc > 0 ? ∑acc/n_acc : 1
+
     θ, ℓp
 end
 

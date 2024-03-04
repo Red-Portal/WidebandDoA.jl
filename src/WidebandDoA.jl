@@ -20,7 +20,13 @@ include("inference/slice.jl")
 include("inference/imhrwmh.jl")
 include("linalg/striped_matrix.jl")
 
-export Slice, SliceSteppingOut, SliceDoublingOut, MetropolisHastings
+export
+    Slice,
+    SliceSteppingOut,
+    SliceDoublingOut,
+    RandomWalkMetropolis,
+    IndependentMetropolis,
+    MetropolisMixture
 
 abstract type AbstractDelayFilter end
 
@@ -41,6 +47,9 @@ include("model/interface.jl")
 include("model/likelihood.jl")
 include("model/sampling.jl")
 
-export WidebandNormalGamma, UniformNormalLocalProposal
+export
+    WidebandNormalGamma,
+    UniformNormalLocalProposal, 
+    WidebandNormalGammaMetropolis
 
 end
