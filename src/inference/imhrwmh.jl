@@ -45,7 +45,7 @@ function transition_mh(
     ℓπ = logdensity(model, θ)
     ℓw′ = ℓπ′ - logpdf(q, θ′)
     ℓw = ℓπ - logpdf(q, θ)
-    α  = exp(ℓw′ - ℓw)
+    α  = min(exp(ℓw′ - ℓw), 1)
     if rand(rng) < α
         θ′, ℓπ′, α
     else
@@ -61,7 +61,7 @@ function transition_mh(
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
     ℓπ = logdensity(model, θ)
-    α  = exp(ℓπ′ - ℓπ)
+    α  = min(exp(ℓπ′ - ℓπ), 1)
     if rand(rng) < α
         θ′, ℓπ′, α
     else
@@ -77,7 +77,7 @@ function transition_mh(
     θ′  = rand(rng, q)
     ℓπ′ = logdensity(model, θ′)
     ℓπ = logdensity(model, θ)
-    α  = exp(ℓπ′ - ℓπ)
+    α  = min(exp(ℓπ′ - ℓπ), 1)
     if rand(rng) < α
         θ′, ℓπ′, α
     else

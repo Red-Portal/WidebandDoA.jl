@@ -111,32 +111,27 @@ function ReversibleJump.transition_mcmc(
     ϕ_range = 1:length(ϕ)
     ℓλ_range = length(ϕ)+1:length(θ_flat)
 
-    ℓp    = logdensity(model_wrapper, θ_flat)
-    ∑acc  = 0.0
-    n_acc = 0
+    ℓp = logdensity(model_wrapper, θ_flat)
 
-    for ϕ_idx in ϕ_range
+    α_ϕ_avg = 0.0
+    for (j, ϕ_idx) in enumerate(ϕ_range)
         model_gibbs = GibbsObjective(model_wrapper, ϕ_idx, θ_flat)
-        θ′idx, ℓp, acc = transition_mh(rng, phi_kernel, model_gibbs, θ_flat[ϕ_idx])
-        ∑acc  += acc
-        n_acc += 1
+        θ′idx, ℓp, α = transition_mh(rng, phi_kernel, model_gibbs, θ_flat[ϕ_idx])
+        α_ϕ_avg     = α_ϕ_avg*(j-1)/j + α/j
         θ_flat[ϕ_idx] = θ′idx
     end
 
-    for ℓλ_idx in ℓλ_range
+    α_ℓλ_avg = 0.0
+    for (j, ℓλ_idx) in enumerate(ℓλ_range)
         model_gibbs = GibbsObjective(model_wrapper, ℓλ_idx, θ_flat)
-        θ′idx, ℓp, acc = transition_mh(rng, loglambda_kernel, model_gibbs, θ_flat[ℓλ_idx])
-        ∑acc  += acc
-        n_acc += 1
+        θ′idx, ℓp, α = transition_mh(rng, loglambda_kernel, model_gibbs, θ_flat[ℓλ_idx])
+        α_ℓλ_avg    = α_ℓλ_avg*(j-1)/j + α/j
         θ_flat[ℓλ_idx] = θ′idx
     end
-
     θ = WidebandNormalGammaParam{T}[
         WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
     ]
-
-    avg_acc = n_acc > 0 ? ∑acc/n_acc : 1
-
-    θ, ℓp, (mcmc_acceptance_rate=avg_acc,)
+    stats = (phi_acceptance_rate=α_ϕ_avg, loglambda_acceptance_rate=α_ℓλ_avg)
+    θ, ℓp, stats
 end
 
