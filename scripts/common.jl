@@ -18,7 +18,8 @@ function construct_default_model(
     λ      = fill(10^(snr/10), length(ϕ))
     σ      = 1.0
 
-    α_λ, β_λ = 2., 1.0
+    # P[λ > 0.1] 80%
+    α_λ, β_λ = 2.1, 0.3125930624954082
     α, β     = 0., 0.
 
     order_prior = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))

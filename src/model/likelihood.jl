@@ -1,5 +1,5 @@
 
-function doa_normalgamma_likelihood(
+function doa_diagnormal_likelihood(
     filter::AbstractDelayFilter,
     Y     ::AbstractMatrix{Complex{T}}, 
     yᵀy   ::T,
@@ -11,7 +11,7 @@ function doa_normalgamma_likelihood(
     c, 
     fs
 ) where {T <: Real}
-    # Normal-(inverse-)gamma prior
+    # Normal with Diagonal Covariance prior
     #
     # W = diagm(λ)
     #
@@ -61,36 +61,3 @@ function doa_normalgamma_likelihood(
     end
 end
 
-function ReversibleJump.logdensity(
-    model::WidebandNormalGamma,
-    θ    ::AbstractVector{<:WidebandNormalGammaParam}
-)
-    @unpack y_fft, y_power, prior = model
-    @unpack delay_filter, Δx, c, fs, alpha, beta, alpha_lambda, beta_lambda, order_prior = prior
-
-    k  = length(θ)
-    ϕ  = [θj.phi       for θj in θ]
-    ℓλ = [θj.loglambda for θj in θ]
-    λ  = exp.(ℓλ)
-
-    ℓp_k = logpdf(order_prior, k)
-
-    if ℓp_k == -Inf
-        -Inf
-    elseif k == 0
-        ℓp_y = doa_normalgamma_likelihood(
-            delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c,  fs   
-        )
-        ℓp_y + ℓp_k
-    elseif any((ϕ .< -π/2) .|| (ϕ .> π/2))
-        -Inf
-    else
-        ℓp_ϕ   = k*logpdf(Uniform(-π/2, π/2), 0.0)
-        ℓp_λ   = sum(Base.Fix1(logpdf, InverseGamma(alpha_lambda, beta_lambda)), λ)
-        ℓjac_λ = sum(ℓλ)
-        ℓp_y   = doa_normalgamma_likelihood(
-            delay_filter, y_fft, y_power, ϕ, λ, alpha, beta, Δx, c, fs   
-        )
-        ℓp_y + ℓp_ϕ + ℓp_k + ℓp_λ + ℓjac_λ
-    end
-end

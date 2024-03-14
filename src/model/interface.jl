@@ -1,9 +1,4 @@
 
-struct WidebandNormalGammaParam{F <: Real}
-    phi      ::F
-    loglambda::F
-end
-
 struct UniformNormalLocalProposal{F <: Real}
     mu   ::F
     sigma::F
