@@ -52,22 +52,38 @@ function sample_signal(
     @unpack k, phi, lambda, sigma = params
 
     n_sensor = length(Δx)
-    N, M     = n_snapshots, n_sensor
-    ϕ, λ, σ  = phi, lambda, sigma
+    N,       = n_snapshots, n_sensor
+    ϕ, λ     = phi, lambda, sigma
+
+    k   = length(ϕ)
+    z_a = randn(rng, N, k)
+
+    Tullio.@tullio a[n,k] := sqrt(λ[k])*z_a[n,k]
+
+    simulate_propagation(rng, prior, params, a)
+end
+
+function simulate_propagation(
+    rng   ::Random.AbstractRNG,
+    prior ::WidebandNormalGammaPrior,
+    params::NamedTuple,
+    signal::AbstractMatrix,
+)
+    @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
+    @unpack k, phi, lambda, sigma = params
+
+    N, M = n_snapshots, length(Δx)
+    ϕ, σ = phi, sigma
+
+    z_ϵ = randn(rng, N, M)
 
     k = length(ϕ)
     τ = inter_sensor_delay(ϕ, Δx, c)
     H = array_delay(delay_filter, τ*fs)
 
-    z_a = randn(rng, N, k)
-    z_ϵ = randn(rng, N, M)
-
-    Tullio.@tullio a[n,k] := sqrt(λ[k])*z_a[n,k]
-    A = fft(a, 1)
-
+    A = fft(signal, 1)
     Tullio.@tullio HA[n,m] := H[n,m,k] * A[n,k]
     X = σ*HA
     x = ifft(X, 1)
-    y = real.(x) + σ*z_ϵ
-    y
+    real.(x) + σ*z_ϵ
 end

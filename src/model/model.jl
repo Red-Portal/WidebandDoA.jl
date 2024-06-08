@@ -24,10 +24,12 @@ struct WidebandNormalGammaPrior{
 end
 
 struct WidebandNormalGamma{
+    Y     <: AbstractMatrix, 
     YF    <: AbstractMatrix, 
     YP    <: Real,
     Prior <: WidebandNormalGammaPrior
 } <: AbstractWidebandModel
+    y      ::Y
     y_fft  ::YF
     y_power::YP
     prior  ::Prior
@@ -42,7 +44,7 @@ function WidebandNormalGamma(y::AbstractMatrix{<:Real}, prior::WidebandNormalGam
     Y = fft(y, 1) / sqrt(size(y, 1))
     @assert size(Y,1) == prior.n_snapshots
     P = sum(abs2, y)
-    WidebandNormalGamma(Y, P, prior)
+    WidebandNormalGamma(y, Y, P, prior)
 end
 
 function WidebandNormalGamma(
