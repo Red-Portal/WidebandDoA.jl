@@ -223,7 +223,7 @@ function slice_sampling(
     ℓp    = logdensity(model, θ)
     ∑acc  = 0.0
     n_acc = 0
-    for idx in 1:length(θ)
+    for idx in shuffle(rng, 1:length(θ))
         model_gibbs = GibbsObjective(model, idx, θ)
         θ′idx, ℓp, acc = slice_sampling_univariate(
             rng, alg, model_gibbs, w[idx], θ[idx], ℓp
