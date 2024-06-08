@@ -3,17 +3,21 @@ module WidebandDoA
 
 using AbstractMCMC
 using Accessors
-using Base
+using Base.Iterators
 using Distributions
 using FFTW
 using LinearAlgebra
 using Random 
 using ReversibleJump
 using SimpleUnPack
+using SparseArrays
 using Statistics
+using PDMats
 
 using LoopVectorization
 using Tullio
+
+#include("piracy.jl")
 
 include("inference/gibbs.jl")
 include("inference/slice.jl")
@@ -46,6 +50,7 @@ include("model/filters.jl")
 include("model/interface.jl")
 include("model/likelihood.jl")
 include("model/sampling.jl")
+include("model/reconstruct.jl")
 
 export
     WidebandNormalGamma,
