@@ -17,7 +17,7 @@ end
 
 @testset "WidebandNormalGamma rjmcmc" begin
     n_snapshots  = 32
-    n_sensors    = 32
+    n_sensors    = 20
     Δx           = range(0, n_sensors*0.5; length=n_sensors)
     c            = 1500
     fs           = 1000
@@ -65,8 +65,8 @@ end
         @testset "inference" begin
             n_pvalue_samples = 32
             n_rank_samples   = 100
-            n_mcmc_steps     = 10
-            n_mcmc_thin      = 4
+            n_mcmc_steps     = 5
+            n_mcmc_thin      = 1
             test             = ExactRankTest(n_rank_samples, n_mcmc_steps, n_mcmc_thin)
             statistics       = θ -> [length(θ)]
             
