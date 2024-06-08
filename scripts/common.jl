@@ -1,6 +1,7 @@
 
 using Distributions
 using DrWatson
+using DSP
 using ReversibleJump
 using WidebandDoA
 using Bootstrap
@@ -18,8 +19,8 @@ function construct_default_model(
     λ      = fill(10^(snr/10), length(ϕ))
     σ      = 1.0
 
-    # P[λ > 0.1] 80%
-    α_λ, β_λ = 2.1, 0.3125930624954082
+    # P[λ > 0.1] = 95%
+    α_λ, β_λ = 2.1, 0.4905160381762056
     α, β     = 0., 0.
 
     order_prior = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
@@ -30,9 +31,10 @@ function construct_default_model(
     θ = (k=2, phi=ϕ, lambda=λ, sigma=σ)
     y = WidebandDoA.sample_signal(rng, model, θ)
 
-    WidebandDoA.WidebandNormalGamma(
+    model = WidebandDoA.WidebandNormalGamma(
         y, Δx, c, fs, α_λ, β_λ, α, β; delay_filter=filter
     )
+    model, θ
 end
 
 function run_bootstrap(
@@ -43,4 +45,32 @@ function run_bootstrap(
     boot = bootstrap(mean, data′, sampling_strategy)
     μ, μ_hi, μ_lo = confint(boot, confint_strategy) |> only
     (μ, μ_hi - μ, μ_lo - μ)
+end
+
+function sample_bandlimited_signals(
+    rng    ::Random.AbstractRNG,
+    prior  ::WidebandDoA.WidebandNormalGammaPrior,
+    params ::NamedTuple,
+    f_begin::Real,
+    f_end  ::Real
+)
+    @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
+    @unpack k, phi, lambda, sigma = params
+    
+    n_sensor = length(Δx)
+    N, M     = n_snapshots, n_sensor
+    ϕ, λ, σ  = phi, lambda, sigma
+    k        = length(ϕ)
+
+    bpf = DSP.Filters.digitalfilter(
+        DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
+        DSP.Filters.Butterworth(8)
+    )
+    z_a = randn(rng, N, k)
+    a   = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
+        aj = sqrt(λj)*z_aj
+        reshape(DSP.Filters.filt(bpf, aj), (:,1))
+    end
+    y = WidebandDoA.simulate_propagation(rng, prior, params, a)
+    y, a
 end
