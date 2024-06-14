@@ -52,7 +52,7 @@ function sample_bandlimited_signals(
     prior  ::WidebandDoA.WidebandNormalGammaPrior,
     params ::NamedTuple,
     f_begin::Real,
-    f_end  ::Real
+    f_end  ::Real,
 )
     @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
     @unpack k, phi, lambda, sigma = params
@@ -66,10 +66,11 @@ function sample_bandlimited_signals(
         DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
         DSP.Filters.Butterworth(8)
     )
-    z_a = randn(rng, N, k)
-    a   = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
-        aj = sqrt(λj)*z_aj
-        reshape(DSP.Filters.filt(bpf, aj), (:,1))
+    z_a  = randn(rng, 2*N, k)
+    gain = sqrt((fs/2)/(f_end - f_begin))
+    a    = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
+        aj = gain*sqrt(λj)*z_aj
+        reshape(DSP.Filters.filt(bpf, aj)[end-N+1:end], (:,1))
     end
     y = WidebandDoA.simulate_propagation(rng, prior, params, a)
     y, a
