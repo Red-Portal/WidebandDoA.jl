@@ -19,8 +19,8 @@ function construct_default_model(
     λ      = fill(10^(snr/10), length(ϕ))
     σ      = 1.0
 
-    # P[λ > 0.1] = 95%
-    α_λ, β_λ = 2.1, 0.4905160381762056
+    # P[λ > 0.1] = 99%
+    α_λ, β_λ = 2.1, 0.6823408279481948
     α, β     = 0., 0.
 
     order_prior = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
@@ -45,6 +45,13 @@ function run_bootstrap(
     boot = bootstrap(mean, data′, sampling_strategy)
     μ, μ_hi, μ_lo = confint(boot, confint_strategy) |> only
     (μ, μ_hi - μ, μ_lo - μ)
+end
+
+function reduce_namedtuples(f, vector_of_tuples)
+    ks = keys(first(vector_of_tuples))
+    @assert all(tup -> keys(tup) == ks, vector_of_tuples) 
+    tuple_of_vectors = NamedTuple(k => getproperty.(vector_of_tuples, k) for k in ks)
+    NamedTuple(k => f(v) for (k,v) in pairs(tuple_of_vectors))
 end
 
 function sample_bandlimited_signals(
