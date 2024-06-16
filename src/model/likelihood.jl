@@ -13,15 +13,15 @@ function doa_diagnormal_likelihood(
 ) where {T <: Real}
     # Normal with Diagonal Covariance prior
     #
-    # W = diagm(λ)
+    # Λ = diagm(λ)
     #
-    # -(N + ν₀)/2 log( γ₀ + y†(H†WH + I)y )
-    # = -(N + ν₀)/2 log( γ₀ + y†(I - H(W⁻¹ + H†H)⁻¹H†)y )
-    # = -(N + ν₀)/2 log( γ₀ + y†y - y†(H(W⁻¹ + H†H)⁻¹H†)y )
+    # -(N + ν₀)/2 log( γ₀ + y†(HΛH† + I)⁻¹y )
+    # = -(N + ν₀)/2 log( γ₀ + y†(I - H(Λ⁻¹ + H†H)⁻¹H†)y )
+    # = -(N + ν₀)/2 log( γ₀ + y†y - y†(H(Λ⁻¹ + H†H)⁻¹H†)y )
     #
     # det(P⊥)^{-1/2} (α/2 + y† P⊥ y)^{-MN/2 + β}
     #
-    # det(P⊥) = det(H†WH + I) = det(W) det(W⁻¹ + H†H)
+    # det(P⊥) = det(H†WH + I) = det(Λ) det(Λ⁻¹ + H†H)
     #
 
     N = size(Y,1)
@@ -35,29 +35,32 @@ function doa_diagnormal_likelihood(
         Δn = τ*fs
         H  = array_delay(filter, Δn)
 
-        Tullio.@tullio threads=false HᴴH[n,j,k]     := conj(H[n,m,j]) * H[n,m,k]
-        Tullio.@tullio threads=false W⁻¹pHᴴH[n,j,k] := (j == k) ? HᴴH[n,j,k] + 1/λ[k] : HᴴH[n,j,k]
+        Tullio.@tullio HᴴH[n,j,k]     := conj(H[n,m,j]) * H[n,m,k]
+        Tullio.@tullio Λ⁻¹pHᴴH[n,j,k] := (j == k) ? HᴴH[n,j,k] + 1/λ[k] : HᴴH[n,j,k]
 
-        W⁻¹pHᴴH⁻¹ = W⁻¹pHᴴH
-        W⁻¹pHᴴH⁻¹, ℓdetW⁻¹pHᴴH = inv_hermitian_striped_matrix!(W⁻¹pHᴴH⁻¹)
-        if isnothing(W⁻¹pHᴴH⁻¹) || !isfinite(ℓdetW⁻¹pHᴴH)
+        Λinv = zeros(N,K,K)
+        @tullio Λinv[i,k,k] = 1/λ[k]
+
+        D, L = ldl_striped_matrix!(Λ⁻¹pHᴴH)
+
+        Tullio.@tullio ℓdetΛ⁻¹pHᴴH := log(real(D[n,m]))
+        if isnothing(L) || !isfinite(ℓdetΛ⁻¹pHᴴH)
             return -Inf
         end
 
-        Tullio.@tullio threads=false ℓdetW := N*log(λ[i])
-        ℓdetP⊥ = ℓdetW + ℓdetW⁻¹pHᴴH
+        Tullio.@tullio ℓdetΛ := N*log(λ[i])
+        ℓdetP⊥ = ℓdetΛ + ℓdetΛ⁻¹pHᴴH
 
-        Tullio.@tullio threads=false Hᴴy[n,k] := conj(H[n,m,k]) * Y[n,m]
-        Tullio.@tullio threads=false Py[n,k]  := W⁻¹pHᴴH⁻¹[n,k,j] * Hᴴy[n,j]
+        Tullio.@tullio Hᴴy[n,k]  := conj(H[n,m,k]) * Y[n,m]
 
-        Tullio.@tullio threads=false yᴴP⊥y := real(conj(Hᴴy[i])*Py[i])
-        yᴴImP⊥y = yᵀy - yᴴP⊥y
+        L⁻¹Hᴴy            = trsv_striped_matrix!(L, Hᴴy)
+        @tullio yᴴImP⊥y := abs(L⁻¹Hᴴy[n,i]/D[n,i]*conj(L⁻¹Hᴴy[n,i]))
+        yᴴP⊥y            = yᵀy - yᴴImP⊥y
 
-        if yᴴImP⊥y ≤ 0 
+        if yᴴP⊥y ≤ sqrt(eps(T))
             return -Inf
         end
-
-        -(N*M/2 + β)*log(α/2 + yᴴImP⊥y) - ℓdetP⊥/2
+        -(N*M/2 + β)*log(α/2 + yᴴP⊥y) - ℓdetP⊥/2
     end
 end
 

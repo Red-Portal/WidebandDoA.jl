@@ -1,35 +1,4 @@
 
-@inline function ⊛(A::AbstractArray{<:Any,3}, B::AbstractArray{<:Any,3})
-    @assert size(A,3) == size(B,2)
-    @assert size(A,1) == size(B,1)
-    Tullio.@tullio threads=false C[n,a,b] := A[n,a,c]*B[n,c,b]
-end
-
-@inline function stripe_matmul!(A::AbstractArray{<:Any,3}, 
-                                B::AbstractArray{<:Any,3},
-                                C::AbstractArray{<:Any,3})
-    @assert size(A,3) == size(B,2)
-    @assert size(A,1) == size(B,1)
-    @assert size(C,2) == size(A,2)
-    @assert size(C,3) == size(B,3)
-    Tullio.@tullio threads=false C[n,a,b] = A[n,a,c]*B[n,c,b]
-end
-
-@inline function stripe_adjoint(A::AbstractArray{<:Any,3})
-    Tullio.@tullio threads=false Aᴴ[n,b,a] := conj(A[n,a,b])
-end
-
-@inline function stripe_adjoint!(A::AbstractArray{<:Any,3}, Aᴴ::AbstractArray{<:Any,3})
-    Tullio.@tullio threads=false Aᴴ[n,b,a] = conj(A[n,a,b])
-end
-
-@inline function safe_complex_reciprocal(x, ϵ)
-    a     = real(x)
-    b     = imag(x)
-    x_mag = max(a*a + b*b, ϵ)
-    Complex(a/x_mag, - b/x_mag)
-end
-
 function inv_hermitian_striped_matrix!(S)
     #
     # In-place inversion of hermitian striped matrices
@@ -47,7 +16,7 @@ function inv_hermitian_striped_matrix!(S)
     N = size(S,1)
     ϵ = eps(S |> eltype |> real)
 
-    Tullio.@tullio threads=false ℓdetS := sum(log(abs(S[i,1,1])))
+    Tullio.@tullio threads=false ℓdetS := sum(log(abs(S[i,1,1])) + ϵ)
     Tullio.@tullio threads=false S[i,1,1] = safe_complex_reciprocal(S[i,1,1], ϵ)
     
     X⁻¹Y_buf         = Array{eltype(S)}(undef, N, M, 1)
@@ -74,10 +43,12 @@ function inv_hermitian_striped_matrix!(S)
         #YᴴX⁻¹Y = Yᴴ ⊛ X⁻¹Y
         stripe_matmul!(Yᴴ, X⁻¹Y, YᴴX⁻¹Y)
 
-        Tullio.@tullio Z⁻¹[i,1,1] = safe_complex_reciprocal(Z[i,1,1] - YᴴX⁻¹Y[i,1,1], ϵ)
-        Tullio.@tullio ℓdetSdivE := -log(abs(Z⁻¹[i,1,1]))
+        Tullio.@tullio threads=false Z⁻¹[i,1,1] = safe_complex_reciprocal(Z[i,1,1] - YᴴX⁻¹Y[i,1,1], ϵ)
+        Tullio.@tullio threads=false ℓdetSdivE := -log(abs(Z⁻¹[i,1,1]) + ϵ)
 
-        if !isfinite(ℓdetSdivE)
+        Tullio.@tullio threads=false error := Z⁻¹[i,1,1]*(Z[i,1,1] - YᴴX⁻¹Y[i,1,1])
+
+        if !isfinite(ℓdetSdivE) || abs(error)/size(Z,1) > 5
             return nothing, -Inf
         end
 
@@ -96,13 +67,13 @@ function inv_hermitian_striped_matrix!(S)
         # 1. Tullio doesn't seem to work with in-place block structures
         # 2. Loopvectorization has the smallest memory footprint
         # 3. The order of operation below matters for both performance and exactness
-        @turbo warn_check_args=false for i = 1:size(S,1)
+        @turbo warn_check_args=false for i in 1:size(S,1)
             S[i,m+1,m+1] = Z⁻¹[i,1,1]
         end
-        @turbo warn_check_args=false for k = 1:m, j = 1:m, i = 1:size(S,1)
+        @turbo warn_check_args=false for k in 1:m, j in 1:m, i in 1:size(S,1)
             S[i,j,k]     = X⁻¹[i,j,k] + X⁻¹YZ⁻¹YᴴX⁻¹[i,j,k]
         end
-        @turbo warn_check_args=false for j = 1:m, i = 1:size(S,1)
+        @turbo warn_check_args=false for j in 1:m, i in 1:size(S,1)
             S[i,j,m+1]   = -X⁻¹YZ⁻¹[i,j,1]
             S[i,m+1,j]   = conj(S[i,j,m+1])
         end

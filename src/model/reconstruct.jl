@@ -8,17 +8,6 @@ function block_fft(m::Int, N::Int)
     Φ, Φ'
 end
 
-function dense_R_type(D::Array)
-    N, K, M = size(D)
-    idx_block_x = collect(partition(1:K*N, N))
-    idx_block_y = collect(partition(1:M*N, N))
-    A = zeros(eltype(D), M*N, K*N)
-    @inbounds for m = 1:M, k = 1:K
-        A[idx_block_x[m], idx_block_y[k]] = diagm(D[:,m,k])
-    end
-    A
-end
-
 function reconstruct(
     model  ::WidebandNormalGamma,
     params::AbstractVector{<:WidebandNormalGammaParam},
@@ -53,7 +42,7 @@ function reconstruct(
     Tullio.@tullio threads=false μ_post_S[n,k] := Σ_post_S[n,k,j] * Hᴴy_S[n,j]
 
     Φk, Φk⁻¹    = block_fft(k, N)
-    Σ_post_S_R  = dense_R_type(Σ_post_S)
+    Σ_post_S_R  = rformat(Σ_post_S)
     Σ_post      = PDMats.PDMat(
         Hermitian(
             real.(Φk⁻¹*(Σ_post_S_R*Φk))

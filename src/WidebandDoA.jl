@@ -17,12 +17,13 @@ using PDMats
 using LoopVectorization
 using Tullio
 
-#include("piracy.jl")
-
 include("inference/gibbs.jl")
 include("inference/slice.jl")
 include("inference/imhrwmh.jl")
-include("linalg/striped_matrix.jl")
+include("linalg/striped.jl")
+include("linalg/schur.jl")
+include("linalg/chol.jl")
+include("linalg/trsv.jl")
 
 export
     Slice,

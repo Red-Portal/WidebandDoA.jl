@@ -31,9 +31,9 @@ function doa_blockg_likelihood(Y::AbstractMatrix{Complex{T}},
         Tullio.@tullio threads=false HᴴH[n,j,k]     := conj(H[n,m,j]) * H[n,m,k]
         Tullio.@tullio threads=false G⁻¹pHᴴH[n,j,k] := (j == k) ? HᴴH[n,j,k] + G⁻¹[n,k] : HᴴH[n,j,k]
 
-        G⁻¹pHᴴH⁻¹ = G⁻¹pHᴴH
-        G⁻¹pHᴴH⁻¹, ℓdetG⁻¹pHᴴH = inv_hermitian_striped_matrix!(G⁻¹pHᴴH⁻¹)
-        if isnothing(G⁻¹pHᴴH⁻¹) || !isfinite(ℓdetG⁻¹pHᴴH)
+        G⁻¹pHᴴHchol = cholesky_striped_matrix!(G⁻¹pHᴴH⁻¹)
+        Tullio.@tullio threads=false ℓdetG⁻¹pHᴴH := 2*log(abs(G⁻¹pHᴴHchol[n,k,k]))
+        if isnothing(G⁻¹pHᴴH⁻¹) || isfinite!(ℓdetG⁻¹pHᴴH)
             return -Inf
         end
 
@@ -41,9 +41,9 @@ function doa_blockg_likelihood(Y::AbstractMatrix{Complex{T}},
         ℓdetfactor = ℓdetG⁻¹ - ℓdetG⁻¹pHᴴH
 
         Tullio.@tullio threads=false Hᴴy[n,k] := conj(H[n,m,k]) * Y[n,m]
-        Tullio.@tullio threads=false Py[n,k]  := G⁻¹pHᴴH⁻¹[n,k,j] * Hᴴy[n,j]
+        L⁻¹y = trsv_striped_matrix!(G⁻¹pHᴴHchol, Hᴴy)
+        yᴴP⊥y = sum(abs2,L⁻¹y)
 
-        Tullio.@tullio yᴴP⊥y := real(conj(Hᴴy[i])*Py[i])
         yᴴImP⊥y = yᵀy - yᴴP⊥y
 
         if yᴴImP⊥y ≤ 0 
