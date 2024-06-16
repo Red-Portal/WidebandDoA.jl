@@ -1,12 +1,13 @@
 
 function ldl_striped_matrix!(A::Array, ϵ = eps(real(eltype(A))))
+    @assert size(A,2) == size(A,3)
     B = size(A,1)
     N = size(A,2)
     D = zeros(eltype(A), B, N)
 
     buf = zeros(eltype(A), B)
 
-    for j in 1:N
+    @inbounds for j in 1:N
         Lj = view(A,1:B,j,1:j-1)
         Dj = view(D,1:B,1:j-1)
         @tullio buf[b] = abs2(Lj[b,k])*Dj[b,k]
@@ -18,7 +19,7 @@ function ldl_striped_matrix!(A::Array, ϵ = eps(real(eltype(A))))
             nothing, nothing
         end
 
-        for i in j+1:N
+        @inbounds for i in j+1:N
             Li = view(A,1:B,i,1:j-1)
             @tullio buf[b] = Li[b,k]*conj(Lj[b,k])*Dj[b,k]
             A[:,i,j] = (A[:,i,j] - buf) ./ D[:,j]
