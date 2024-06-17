@@ -49,7 +49,7 @@ function sample_signal(
     params::NamedTuple,
 )
     @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
-    @unpack k, phi, lambda, sigma = params
+    @unpack phi, lambda, sigma = params
 
     n_sensor = length(Δx)
     N,       = n_snapshots, n_sensor
