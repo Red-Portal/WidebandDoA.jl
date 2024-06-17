@@ -8,8 +8,8 @@ using Tullio
     S         = zeros(Complex{realtype}, 3, 2, 2)
     S[:,1,1]  = [1, 2, 3]
     S[:,2,2]  = [1, 2, 3]
-    S[:,1,2]  = fill(realtype(0.99)*im, 3)
-    S[:,2,1]  = fill(realtype(-0.99)*im, 3)
+    S[:,1,2]  = fill(realtype(0.1)*im, 3)
+    S[:,2,1]  = fill(realtype(-0.1)*im, 3)
 
     A = WidebandDoA.rformat(S) |> Hermitian
 
@@ -42,12 +42,12 @@ using Tullio
     @testset "cholesky_striped_matrix" begin
         L = WidebandDoA.cholesky_striped_matrix!(deepcopy(S))
 
-        @testet "decomposition" begin
+        @testset "decomposition" begin
             @tullio LLt[b,i,j] := L[b,i,k]*conj(L[b,j,k])
             @test norm(S -  LLt) < 1e-7
         end
 
-        @testet "log determinant" begin
+        @testset "log determinant" begin
             ℓdetA_true = logabsdet(A)[1]
 
             Tullio.@tullio threads=false ℓdetA := 2*log(abs(L[n,k,k]))
@@ -59,12 +59,12 @@ using Tullio
     @testset "ldl_striped_matrix" begin
         D, L = WidebandDoA.ldl_striped_matrix!(deepcopy(S))
 
-        @testet "decomposition" begin
+        @testset "decomposition" begin
             @tullio LDLt[b,i,j] := L[b,i,k]*D[b,k]*conj(L[b,j,k])
             @test norm(S -  LDLt) < 1e-7
         end
 
-        @testet "log determinant" begin
+        @testset "log determinant" begin
             ℓdetA_true = logabsdet(A)[1]
 
             Tullio.@tullio threads=false ℓdetA := log(abs(D[n,k]))
