@@ -74,8 +74,8 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
 end
 
 function run_simulation()
-    n_samples = 2^14
-    n_burn    = 2^10
+    n_samples = 2^12
+    n_burn    = 2^7
     n_reps    = 2^7
     ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
 
