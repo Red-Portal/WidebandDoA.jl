@@ -64,10 +64,10 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
         model = @set model.prior = setproperties(model.prior, alpha_lambda=α_λ, beta_lambda=β_λ)
         k_post, k_post_rb = run_rjmcmc(rng, model, n_samples, n_burn)   
         (
-            zerone_naive        = mode(k_post)    == k_true,
-            zerone_raoblackwell = mode(k_post_rb) == k_true,
-            l1_naive            = abs(median(k_post)    - k_true),
-            l1_raoblackwell     = abs(median(k_post_rb) - k_true),
+            zeroone_naive        = mode(k_post)    == k_true,
+            zeroone_raoblackwell = mode(k_post_rb) == k_true,
+            l1_naive             = abs(median(k_post)    - k_true),
+            l1_raoblackwell      = abs(median(k_post_rb) - k_true),
         )
     end
     reduce_namedtuples(
@@ -125,7 +125,7 @@ function run_simulation()
         res = estimate_error(
             snr, ϕ, alpha_lambda, beta_lambda, n_samples, n_burn, n_reps
         )
-        DataFrame(
+        df = DataFrame(
             alpha_lambda = alpha_lambda,
             beta_lambda  = beta_lambda,
             snr          = snr,
@@ -146,6 +146,8 @@ function run_simulation()
             l1_raoblackwell_upper = res.l1_raoblackwell[2],
             l1_raoblackwell_lower = res.l1_raoblackwell[3],
         )
+        display(df)
+        df
     end
     save(datadir("raw", "calibration_error.jld2"), "data", df) 
 end
