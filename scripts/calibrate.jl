@@ -74,7 +74,7 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
 end
 
 function run_simulation()
-    system_setup(; use_mkl=true, start=0)
+    system_setup(; use_mkl=true, is_hyper=true, start=0)
 
     n_samples = 2^14
     n_burn    = 2^10
