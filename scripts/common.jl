@@ -1,7 +1,7 @@
 
+using BLAS
 using Distributions
 using DrWatson
-using DSP
 using ReversibleJump
 using WidebandDoA
 using Bootstrap
