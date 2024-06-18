@@ -1,10 +1,12 @@
 
 using BLAS
+using Bootstrap
 using Distributions
 using DrWatson
+using LinearAlgebra
+using MKL
 using ReversibleJump
 using WidebandDoA
-using Bootstrap
 
 function system_setup(; use_mkl=false, is_hyper=false, start)
     if myid() > 1
