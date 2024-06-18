@@ -64,8 +64,10 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
         model = @set model.prior = setproperties(model.prior, alpha_lambda=α_λ, beta_lambda=β_λ)
         k_post, k_post_rb = run_rjmcmc(rng, model, n_samples, n_burn)   
         (
-            naive        = abs(mode(k_post)    - k_true),
-            raoblackwell = abs(mode(k_post_rb) - k_true),
+            zerone_naive        = mode(k_post)    == k_true,
+            zerone_raoblackwell = mode(k_post_rb) == k_true,
+            l1_naive            = abs(median(k_post)    - k_true),
+            l1_raoblackwell     = abs(median(k_post_rb) - k_true),
         )
     end
     reduce_namedtuples(
@@ -120,7 +122,7 @@ function run_simulation()
 
     df = @showprogress mapreduce(vcat, configs) do config
         (; alpha_lambda, beta_lambda, snr) = config
-        (; naive, raoblackwell) = estimate_error(
+        res = estimate_error(
             snr, ϕ, alpha_lambda, beta_lambda, n_samples, n_burn, n_reps
         )
         DataFrame(
@@ -128,13 +130,21 @@ function run_simulation()
             beta_lambda  = beta_lambda,
             snr          = snr,
             #
-            naive_mean   = naive[1],
-            naive_upper  = naive[2],
-            naive_lower  = naive[3],
+            zeroone_naive_mean   = res.zeroone_naive[1],
+            zeroone_naive_upper  = res.zeroone_naive[2],
+            zeroone_naive_lower  = res.zeroone_naive[3],
             #
-            raoblackwell_mean  = raoblackwell[1],
-            raoblackwell_upper = raoblackwell[2],
-            raoblackwell_lower = raoblackwell[3],
+            zeroone_raoblackwell_mean  = res.zeroone_raoblackwell[1],
+            zeroone_raoblackwell_upper = res.zeroone_raoblackwell[2],
+            zeroone_raoblackwell_lower = res.zeroone_raoblackwell[3],
+            #
+            l1_naive_mean   = res.l1_naive[1],
+            l1_naive_upper  = res.l1_naive[2],
+            l1_naive_lower  = res.l1_naive[3],
+            #
+            l1_raoblackwell_mean  = res.l1_raoblackwell[1],
+            l1_raoblackwell_upper = res.l1_raoblackwell[2],
+            l1_raoblackwell_lower = res.l1_raoblackwell[3],
         )
     end
     save(datadir("raw", "calibration_error.jld2"), "data", df) 
