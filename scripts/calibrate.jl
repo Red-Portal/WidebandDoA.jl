@@ -64,8 +64,8 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
         model = @set model.prior = setproperties(model.prior, alpha_lambda=α_λ, beta_lambda=β_λ)
         k_post, k_post_rb = run_rjmcmc(rng, model, n_samples, n_burn)   
         (
-            zeroone_naive        = mode(k_post)    == k_true,
-            zeroone_raoblackwell = mode(k_post_rb) == k_true,
+            zeroone_naive        = mode(k_post)    != k_true,
+            zeroone_raoblackwell = mode(k_post_rb) != k_true,
             l1_naive             = abs(median(k_post)    - k_true),
             l1_raoblackwell      = abs(median(k_post_rb) - k_true),
         )
