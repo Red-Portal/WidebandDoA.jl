@@ -1,6 +1,5 @@
 
 using Accessors
-using Distributions
 using DataFrames
 using Plots, StatsPlots
 using ProgressMeter
@@ -75,9 +74,7 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
 end
 
 function run_simulation()
-    seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
-    rng  = Philox4x(UInt64, seed, 8)
-    set_counter!(rng, 1)
+    system_setup(; use_mkl=true, start=0)
 
     n_samples = 2^14
     n_burn    = 2^10
@@ -116,7 +113,7 @@ function run_simulation()
         (alpha_lambda = 4.01, beta_lambda = 8.66),
     ]
 
-    snrs = [-8., -4., 0., 4., 8.]
+    snrs = [-10, -8., -6, -4., -2, 0., 2, 4., 6, 8., 10]
     snrs = [(snr=snr,) for snr in snrs]
 
     configs = Iterators.product(hypers, snrs) |> collect

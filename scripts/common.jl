@@ -6,6 +6,14 @@ using ReversibleJump
 using WidebandDoA
 using Bootstrap
 
+function system_setup(; use_mkl=false, is_hyper=false, start)
+    if myid() > 1
+       multiplier = is_hyper ? 2 : 1
+       run(`taskset -pc $(multiplier*(myid() - 2) + start) $(getpid())`)
+    end
+    BLAS.set_num_threads(1)
+end
+
 function construct_default_model(
     rng::Random.AbstractRNG, ϕ::AbstractVector, snr::Real
 )
@@ -23,16 +31,18 @@ function construct_default_model(
     α_λ, β_λ = 2.1, 0.6823408279481948
     α, β     = 0., 0.
 
-    order_prior = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
+    order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
     model       = WidebandDoA.WidebandNormalGammaPrior(
         N, filter, Δx, c, fs, order_prior, α_λ, β_λ, α, β,
     )
 
-    θ = (k=2, phi=ϕ, lambda=λ, sigma=σ)
+    θ = (k=length(ϕ), phi=ϕ, lambda=λ, sigma=σ)
     y = WidebandDoA.sample_signal(rng, model, θ)
 
     model = WidebandDoA.WidebandNormalGamma(
-        y, Δx, c, fs, α_λ, β_λ, α, β; delay_filter=filter
+        y, Δx, c, fs, α_λ, β_λ, α, β;
+        delay_filter=filter,
+        order_prior =order_prior
     )
     model, θ
 end
