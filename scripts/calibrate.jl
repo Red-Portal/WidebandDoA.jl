@@ -1,5 +1,6 @@
 
 using Accessors
+using Distributions
 using DataFrames
 using Plots, StatsPlots
 using ProgressMeter
