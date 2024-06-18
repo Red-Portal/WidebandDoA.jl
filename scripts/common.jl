@@ -1,5 +1,4 @@
 
-using BLAS
 using Bootstrap
 using Distributions
 using DrWatson
