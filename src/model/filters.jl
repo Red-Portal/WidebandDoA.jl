@@ -3,7 +3,6 @@ function inter_sensor_delay(ϕ::AbstractVector, Δx::AbstractVector, c)
     Tullio.@tullio avx=64 threads=false τ[m,k] := Δx[m]*sin(ϕ[k])/c
 end
 
-
 """
     WindowedSinc(n_fft)
 

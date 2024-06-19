@@ -58,7 +58,7 @@ function sample_signal(
     k   = length(ϕ)
     z_a = randn(rng, N, k)
 
-    Tullio.@tullio a[n,k] := sqrt(λ[k])*z_a[n,k]
+    Tullio.@tullio a[n,k] := sqrt(λ[k])*sigma*z_a[n,k]
 
     simulate_propagation(rng, prior, params, a)
 end
