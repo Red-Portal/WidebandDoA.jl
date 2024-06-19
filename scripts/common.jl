@@ -2,6 +2,7 @@
 using Bootstrap
 using Distributions
 using DrWatson
+using DSP
 using LinearAlgebra
 using MKL
 using ReversibleJump
@@ -30,7 +31,7 @@ function construct_default_model(
 
     # P[λ > 0.1] = 99%
     α_λ, β_λ = 2.1, 0.6823408279481948
-    α, β     = 0., 0.
+    α, β     = 0., 0.0
 
     order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
     model       = WidebandDoA.WidebandNormalGammaPrior(
@@ -75,8 +76,7 @@ function sample_bandlimited_signals(
     @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
     @unpack k, phi, lambda, sigma = params
     
-    n_sensor = length(Δx)
-    N, M     = n_snapshots, n_sensor
+    N        = n_snapshots
     ϕ, λ, σ  = phi, lambda, sigma
     k        = length(ϕ)
 
@@ -84,7 +84,7 @@ function sample_bandlimited_signals(
         DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
         DSP.Filters.Butterworth(8)
     )
-    z_a  = randn(rng, 2*N, k)
+    z_a  = randn(rng, 4*N, k)
     gain = sqrt((fs/2)/(f_end - f_begin))
     a    = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
         aj = gain*sqrt(λj)*z_aj
