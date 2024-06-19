@@ -54,7 +54,7 @@ function doa_diagnormal_likelihood(
         @tullio yᴴImP⊥y := abs(L⁻¹Hᴴy[n,i]/D[n,i]*conj(L⁻¹Hᴴy[n,i]))
         yᴴP⊥y            = yᵀy - yᴴImP⊥y
 
-        if yᴴP⊥y ≤ sqrt(eps(T))
+        if yᴴP⊥y ≤ eps(T)
             return -Inf
         end
         -(N*M/2 + β)*log(α/2 + yᴴP⊥y) - ℓdetP⊥/2
