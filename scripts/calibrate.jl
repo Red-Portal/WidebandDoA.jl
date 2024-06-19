@@ -45,7 +45,7 @@ function run_rjmcmc(rng, model, n_samples, n_burn)
         n_samples,
         initial_order,
         initial_params;
-        show_progress=true,
+        show_progress=false,
     )
     stats     = last(stats, n_samples - n_burn)
     k_post    = modelposterior_naive(stats)
