@@ -21,7 +21,7 @@ function doa_diagnormal_likelihood(
     #
     # det(P⊥)^{-1/2} (α/2 + y† P⊥ y)^{-MN/2 + β}
     #
-    # det(P⊥) = det(H†WH + I) = det(Λ) det(Λ⁻¹ + H†H)
+    # det(P⊥) = det(H†ΛH + I) = det(Λ) det(Λ⁻¹ + H†H)
     #
 
     N = size(Y,1)
@@ -37,9 +37,6 @@ function doa_diagnormal_likelihood(
 
         Tullio.@tullio HᴴH[n,j,k]     := conj(H[n,m,j]) * H[n,m,k]
         Tullio.@tullio Λ⁻¹pHᴴH[n,j,k] := (j == k) ? HᴴH[n,j,k] + 1/λ[k] : HᴴH[n,j,k]
-
-        Λinv = zeros(N,K,K)
-        @tullio Λinv[i,k,k] = 1/λ[k]
 
         D, L = ldl_striped_matrix!(Λ⁻¹pHᴴH)
 
