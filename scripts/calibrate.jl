@@ -77,11 +77,10 @@ function estimate_error(snr, ϕ, source_prior, n_samples, n_burn, n_reps)
 end
 
 function run_simulation()
-    n_samples = 10 #2^12
-    n_burn    = 2 #2^7
-    n_reps    = 2 #2^7
-    #ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
-    ϕ         = [-2, 2, ]*π/5
+    n_samples = 2^12
+    n_burn    = 2^7
+    n_reps    = 2^7
+    ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
 
     prior = [
         (dist="inversegamma", param1=0.1,  param2=0.1),
