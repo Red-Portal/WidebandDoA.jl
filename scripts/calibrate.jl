@@ -29,8 +29,8 @@ function modelposterior_naive(stats)
     DiscreteNonParametric(sup, probs)
 end
 
-function run_rjmcmc(rng, model, n_samples, n_burn)
-    initial_params = WidebandDoA.WidebandNormalGammaParam{Float64}[]
+function run_rjmcmc(rng, cond, n_samples, n_burn)
+    initial_params = WidebandDoA.WidebandIsoIsoParam{Float64}[]
     initial_order  = 0
 
     prop   = UniformNormalLocalProposal(0.0, 1.0)
@@ -41,7 +41,7 @@ function run_rjmcmc(rng, model, n_samples, n_burn)
     _, stats = ReversibleJump.sample(
         rng,
         rjmcmc,
-        model,
+        cond,
         n_samples,
         initial_order,
         initial_params;
@@ -49,24 +49,21 @@ function run_rjmcmc(rng, model, n_samples, n_burn)
     )
     stats     = last(stats, n_samples - n_burn)
     k_post    = modelposterior_naive(stats)
-    k_post_rb = ReversibleJump.modelposterior(stats, model.prior.order_prior)
+    k_post_rb = ReversibleJump.modelposterior(stats, cond.model.prior.order_prior)
     k_post, k_post_rb
 end
 
-function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
+function estimate_error(snr, ϕ, source_prior, n_samples, n_burn, n_reps)
     k_true = length(ϕ)
     data   = pmap(1:n_reps) do key
         seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
         rng  = Philox4x(UInt64, seed, 8)
         set_counter!(rng, key)
 
-        model, _ = construct_default_model(rng, ϕ, snr)
+        cond, _ = construct_default_model(rng, ϕ, snr)
+        cond    = @set cond.model.prior.source_prior = source_prior
 
-        #y, a  = sample_bandlimited_signals(rng, model.prior, θ_true, 10, 300)
-        #model = WidebandNormalGamma(y, model.prior)
-
-        model = @set model.prior = setproperties(model.prior, alpha_lambda=α_λ, beta_lambda=β_λ)
-        k_post, k_post_rb = run_rjmcmc(rng, model, n_samples, n_burn)   
+        k_post, k_post_rb = run_rjmcmc(rng, cond, n_samples, n_burn)   
         (
             zeroone_naive        = mode(k_post)    != k_true,
             zeroone_raoblackwell = mode(k_post_rb) != k_true,
@@ -80,55 +77,46 @@ function estimate_error(snr, ϕ, α_λ, β_λ, n_samples, n_burn, n_reps)
 end
 
 function run_simulation()
-    n_samples = 2^12
-    n_burn    = 2^7
-    n_reps    = 2^7
-    ϕ         = [-3., -2, -1, 1, 2, 3]*π/7
+    n_samples = 10 #2^12
+    n_burn    = 2 #2^7
+    n_reps    = 2 #2^7
+    #ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
+    ϕ         = [-2, 2, ]*π/5
 
-    hypers = [
-        (alpha_lambda = 0.01, beta_lambda = 0.01),
-        (alpha_lambda = 0.01, beta_lambda = 0.1),
-        (alpha_lambda = 0.1,  beta_lambda = 0.01),
-        (alpha_lambda = 0.1,  beta_lambda = 0.1),
-
-        # P[ 0.1 < λ < 10 ] ≈ 0.9
-        (alpha_lambda = 2.01, beta_lambda = 0.40),
-        (alpha_lambda = 2.01, beta_lambda = 5.84),
-
-        (alpha_lambda = 4.01, beta_lambda = 0.68),
-        (alpha_lambda = 4.01, beta_lambda = 18.12),
-
-        # P[ 0.1 < λ < 10 ] ≈ 0.95
-        (alpha_lambda = 2.01, beta_lambda = 0.49),
-        (alpha_lambda = 2.01, beta_lambda = 3.96),
-
-        (alpha_lambda = 4.01, beta_lambda = 0.79),
-        (alpha_lambda = 4.01, beta_lambda = 14.25),
-
-        # P[ 0.1 < λ < 10 ] ≈ 0.99
-        (alpha_lambda = 2.01, beta_lambda = 0.70),
-        (alpha_lambda = 2.01, beta_lambda = 1.72),
-
-        (alpha_lambda = 4.01, beta_lambda = 1.02),
-        (alpha_lambda = 4.01, beta_lambda = 8.66),
+    prior = [
+        (dist="inversegamma", param1=0.1,  param2=0.1),
+        (dist="inversegamma", param1=0.01, param2=0.01),
+        (dist="normal",       param1=1.3,  param2=1.2),
+        (dist="normal",       param1=5.3,  param2=2.3),
+        (dist="normal",       param1=-0.8, param2=0.6),
+        (dist="normal",       param1=1.5,  param2=0.6),
     ]
 
     snrs = [-10, -8., -6, -4., -2, 0., 2, 4., 6, 8., 10]
     snrs = [(snr=snr,) for snr in snrs]
 
-    configs = Iterators.product(hypers, snrs) |> collect
+    configs = Iterators.product(prior, snrs) |> collect
     configs = reshape(configs, :)
     configs = map(x -> merge(x...), configs)
 
     df = @showprogress mapreduce(vcat, configs) do config
-        (; alpha_lambda, beta_lambda, snr) = config
+        (; dist, param1, param2, snr) = config
+
+        source_prior = if dist == "normal"
+            Normal(param1, param2)
+        else
+            InverseGamma(param1, param2)
+        end
+
         res = estimate_error(
-            snr, ϕ, alpha_lambda, beta_lambda, n_samples, n_burn, n_reps
+            snr, ϕ, source_prior, n_samples, n_burn, n_reps
         )
+
         df = DataFrame(
-            alpha_lambda = alpha_lambda,
-            beta_lambda  = beta_lambda,
-            snr          = snr,
+            dist   = dist,
+            param1 = param1,
+            param2 = param2,
+            snr    = snr,
             #
             zeroone_naive_mean   = res.zeroone_naive[1],
             zeroone_naive_lower  = res.zeroone_naive[2],

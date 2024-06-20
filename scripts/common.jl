@@ -31,22 +31,19 @@ function construct_default_model(
 
     # P[λ > 0.1] = 99%
     α_λ, β_λ = 2.1, 0.6823408279481948
-    α, β     = 0., 0.0
+    source_prior = InverseGamma(α_λ, β_λ)
 
     order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
-    model       = WidebandDoA.WidebandNormalGammaPrior(
-        N, filter, Δx, c, fs, order_prior, α_λ, β_λ, α, β,
+    model       = WidebandDoA.WidebandIsoIsoModel(
+        N, Δx, c, fs, source_prior;
+        order_prior,
+        delay_filter=filter
     )
 
-    θ = (k=length(ϕ), phi=ϕ, lambda=λ, sigma=σ)
-    y = WidebandDoA.sample_signal(rng, model, θ)
-
-    model = WidebandDoA.WidebandNormalGamma(
-        y, Δx, c, fs, α_λ, β_λ, α, β;
-        delay_filter=filter,
-        order_prior =order_prior
-    )
-    model, θ
+    params = rand(rng, model.prior; k=length(ϕ), sigma=σ, phi=ϕ, lambda=λ)
+    y      = rand(rng, model.likelihood, model.prior, params.sourcesignals, ϕ; sigma=σ)
+    model  = WidebandDoA.WidebandConditioned(model, y)
+    model, params
 end
 
 function run_bootstrap(
@@ -66,30 +63,30 @@ function reduce_namedtuples(f, vector_of_tuples)
     NamedTuple(k => f(v) for (k,v) in pairs(tuple_of_vectors))
 end
 
-function sample_bandlimited_signals(
-    rng    ::Random.AbstractRNG,
-    prior  ::WidebandDoA.WidebandNormalGammaPrior,
-    params ::NamedTuple,
-    f_begin::Real,
-    f_end  ::Real,
-)
-    @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
-    @unpack k, phi, lambda, sigma = params
+# function sample_bandlimited_signals(
+#     rng    ::Random.AbstractRNG,
+#     prior  ::WidebandDoA.WidebandNormalGammaPrior,
+#     params ::NamedTuple,
+#     f_begin::Real,
+#     f_end  ::Real,
+# )
+#     @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
+#     @unpack k, phi, lambda, sigma = params
     
-    N        = n_snapshots
-    ϕ, λ, σ  = phi, lambda, sigma
-    k        = length(ϕ)
+#     N        = n_snapshots
+#     ϕ, λ, σ  = phi, lambda, sigma
+#     k        = length(ϕ)
 
-    bpf = DSP.Filters.digitalfilter(
-        DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
-        DSP.Filters.Butterworth(8)
-    )
-    z_a  = randn(rng, 4*N, k)
-    gain = sqrt((fs/2)/(f_end - f_begin))
-    a    = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
-        aj = gain*sqrt(λj)*z_aj
-        reshape(DSP.Filters.filt(bpf, aj)[end-N+1:end], (:,1))
-    end
-    y = WidebandDoA.simulate_propagation(rng, prior, params, a)
-    y, a
-end
+#     bpf = DSP.Filters.digitalfilter(
+#         DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
+#         DSP.Filters.Butterworth(8)
+#     )
+#     z_a  = randn(rng, 4*N, k)
+#     gain = sqrt((fs/2)/(f_end - f_begin))
+#     a    = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
+#         aj = gain*sqrt(λj)*z_aj
+#         reshape(DSP.Filters.filt(bpf, aj)[end-N+1:end], (:,1))
+#     end
+#     y = WidebandDoA.simulate_propagation(rng, prior, params, a)
+#     y, a
+# end
