@@ -11,20 +11,6 @@ struct WidebandIsoSourcePrior{
     source_prior::SP
 end
 
-function Base.rand(
-    rng   ::Random.AbstractRNG,
-    prior ::WidebandIsoSourcePrior;
-    k     ::Int            = rand(rng, prior.order_prior),
-    sigma ::Real           = rand(rng, InverseGamma(prior.alpha, prior.beta)),
-    phi   ::AbstractVector = rand(rng, Uniform(-π/2, π/2), k),
-    lambda::AbstractVector = rand(rng, prior.source_prior, k)
-)
-    @unpack n_snapshots, alpha, beta, order_prior, source_prior = prior
-    z_x = randn(rng, n_snapshots, k)
-    Tullio.@tullio x[n,k] := sqrt(lambda[k])*sigma*z_x[n,k]
-    (k=k, phi=phi, lambda=lambda, sigma=sigma, sourcesignals=x)
-end
-
 function logpriordensity(
     prior::WidebandIsoSourcePrior,
     θ    ::AbstractVector
@@ -47,4 +33,18 @@ function logpriordensity(
         ℓp_λ = sum(Base.Fix1(logpdf, source_prior), λ)
         ℓp_ϕ + ℓp_λ + ℓp_k + ℓjac_λ
     end
+end
+
+function Base.rand(
+    rng   ::Random.AbstractRNG,
+    prior ::WidebandIsoSourcePrior;
+    k     ::Int            = rand(rng, prior.order_prior),
+    sigma ::Real           = rand(rng, InverseGamma(prior.alpha, prior.beta)),
+    phi   ::AbstractVector = rand(rng, Uniform(-π/2, π/2), k),
+    lambda::AbstractVector = rand(rng, prior.source_prior, k)
+)
+    @unpack n_snapshots, alpha, beta, order_prior, source_prior = prior
+    z_x = randn(rng, n_snapshots, k)
+    Tullio.@tullio x[n,k] := sqrt(lambda[k])*sigma*z_x[n,k]
+    (k=k, phi=phi, lambda=lambda, sigma=sigma, sourcesignals=x)
 end
