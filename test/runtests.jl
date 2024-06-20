@@ -8,23 +8,25 @@ using Distributions
 using FFTW
 using LinearAlgebra
 using MCMCTesting
+using Preferences
 using Random
 using ReversibleJump
 using StableRNGs
 using Statistics
 using Tullio
 
+set_preferences!("WidebandDoA", "instability_check" => "error")
+
 include("filters.jl")
 include("striped.jl")
 
 function MCMCTesting.sample_joint(
     rng  ::Random.AbstractRNG,
-    model::WidebandDoA.WidebandNormalGammaPrior
+    model::WidebandDoA.WidebandIsoIsoModel,
 )
-    all_params = WidebandDoA.sample_params(rng, model)
-    y          = WidebandDoA.sample_signal(rng, model, all_params)
-    params     = @. WidebandDoA.WidebandNormalGammaParam(all_params.phi, log(all_params.lambda))
-    params, y
+    params, data = rand(rng, model)
+    params_struct = @. WidebandIsoIsoParam(params.phi, log(params.lambda))
+    params_struct, data
 end
 
 include("mcmc.jl")

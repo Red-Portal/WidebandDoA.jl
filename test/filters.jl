@@ -11,8 +11,8 @@
     delays = Float64.(delays_int)
 
     @testset for filter  in [
-        WidebandDoA.WindowedSinc(N),
-        WidebandDoA.ComplexShift(N)
+        WindowedSinc(N),
+        ComplexShift(N)
     ]
         H = WidebandDoA.array_delay(filter, delays)
         @tullio Y[n,m,k] := H[n,m,k]*X[n]
