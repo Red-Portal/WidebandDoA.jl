@@ -4,18 +4,20 @@ module WidebandDoA
 using AbstractMCMC
 using Accessors
 using Base.Iterators
+using DispatchDoctor
 using Distributions
 using FFTW
 using LinearAlgebra
+using LoopVectorization
+using PDMats
 using Random 
 using ReversibleJump
 using SimpleUnPack
 using SparseArrays
 using Statistics
-using PDMats
-
-using LoopVectorization
 using Tullio
+
+@stable default_mode="disable" begin
 
 include("inference/gibbs.jl")
 include("inference/slice.jl")
@@ -44,18 +46,64 @@ The fractional delay filters are the ones in:
 """
 function array_delay end
 
-abstract type AbstractWidebandModel <: AbstractMCMC.AbstractModel end
+abstract type AbstractWidebandParam end
 
-include("model/model.jl")
-include("model/filters.jl")
-include("model/interface.jl")
-include("model/likelihood.jl")
-include("model/sampling.jl")
-include("model/reconstruct.jl")
+abstract type AbstractWidebandModel end
+
+abstract type AbstractWidebandConditionedModel <: AbstractMCMC.AbstractModel end
+
+abstract type AbstractWidebandPrior end
+
+function logpriordensity end
+
+abstract type AbstractWidebandLikelihood end
+
+function loglikelihood end
+
+function block_fft(m::Int, N::Int)
+    idx = 0:N-1
+    Tullio.@tullio W[i,j] := exp(-im*2*π*idx[i]/N*idx[j]) / sqrt(N)
+
+    W_sp = sparse(W)
+    Φ    = blockdiag(fill(W_sp, m)...)
+    Φ, Φ'
+end
+
+function reconstruct end
 
 export
-    WidebandNormalGamma,
-    UniformNormalLocalProposal, 
-    WidebandNormalGammaMetropolis
+    WindowedSinc,
+    ComplexShift
+
+include("components/filters.jl")
+
+export WidebandConditioned
+
+include("components/conditioned.jl")
+
+export UniformNormalLocalProposal
+
+include("components/localproposals.jl")
+
+export WidebandIsoSourcePrior
+
+include("components/isoprior.jl")
+
+export WidebandIsoIsoLikelihood
+
+include("components/isoisolikelihood.jl")
+
+export
+    WidebandIsoIsoModel,
+    WidebandIsoIsoParam,
+    WidebandIsoIsoMetropolis,
+    reconstruct
+
+include("model/isoiso/model.jl")
+include("model/isoiso/reconstruct.jl")
+include("model/isoiso/rjmcmc_interface.jl")
+include("model/isoiso/mcmc_interface.jl")
+
+end
 
 end

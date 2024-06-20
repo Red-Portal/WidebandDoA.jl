@@ -1,16 +1,7 @@
 
-function block_fft(m::Int, N::Int)
-    idx = 0:N-1
-    Tullio.@tullio W[i,j] := exp(-im*2*π*idx[i]/N*idx[j]) / sqrt(N)
-
-    W_sp = sparse(W)
-    Φ    = blockdiag(fill(W_sp, m)...)
-    Φ, Φ'
-end
-
 function reconstruct(
-    model  ::WidebandNormalGamma,
-    params::AbstractVector{<:WidebandNormalGammaParam},
+    model ::WidebandIsoIsoModel,
+    params::AbstractVector{<:WidebandIsoIsoParam},
 )
     @unpack y, y_fft, y_power, prior = model
     @unpack delay_filter, Δx, c, fs, alpha, beta, alpha_lambda, beta_lambda, order_prior = prior
@@ -37,7 +28,7 @@ function reconstruct(
     Tullio.@tullio W⁻¹pHᴴH_S[n,j,k] := (j == k) ? HᴴH_S[n,j,k] + 1/λ[k] : HᴴH_S[n,j,k]
     Tullio.@tullio Hᴴy_S[n,k]       := conj(H_S[n,m,k]) * y_fft[n,m]
 
-    Σ_post_S, _ = WidebandDoA.inv_hermitian_striped_matrix!(W⁻¹pHᴴH_S)
+    Σ_post_S, _ = Wideband.inv_hermitian_striped_matrix!(W⁻¹pHᴴH_S)
 
     Tullio.@tullio threads=false μ_post_S[n,k] := Σ_post_S[n,k,j] * Hᴴy_S[n,j]
 

@@ -23,11 +23,11 @@ function find_interval(
     rng::Random.AbstractRNG,
        ::Slice,
        ::GibbsObjective,
-    w  ::Real,
-       ::Real,
-    θ₀ ::Real,
-)
-    u = rand(rng)
+    w  ::T,
+       ::T,
+    θ₀ ::T,
+) where {T}
+    u = rand(rng, T)
     L = θ₀ - w*u
     R = L + w
     L, R, 0
@@ -37,10 +37,10 @@ function find_interval(
     rng  ::Random.AbstractRNG,
     alg  ::SliceDoublingOut,
     model::GibbsObjective,
-    w    ::Real,
-    ℓy   ::Real,
-    θ₀   ::Real,
-)
+    w    ::T,
+    ℓy   ::T,
+    θ₀   ::T,
+) where {T <: Real}
     #=
         Doubling out procedure for finding a slice
         (An acceptance rate < 1e-4 is treated as a potential infinite loop)
@@ -51,7 +51,7 @@ function find_interval(
     =##
     p = alg.max_doubling_out
 
-    u = rand(rng)
+    u = rand(rng, T)
     L = θ₀ - w*u
     R = L + w
 
@@ -80,10 +80,10 @@ function find_interval(
     rng  ::Random.AbstractRNG,
     alg  ::SliceSteppingOut,
     model::GibbsObjective,
-    w    ::Real,
-    ℓy   ::Real,
-    θ₀   ::Real,
-)
+    w    ::T,
+    ℓy   ::T,
+    θ₀   ::T,
+) where {T <: Real}
     #=
         Stepping out procedure for finding a slice
         (An acceptance rate < 1e-4 is treated as a potential infinite loop)
@@ -94,11 +94,11 @@ function find_interval(
     =##
     m = alg.max_stepping_out
 
-    u      = rand(rng)
+    u      = rand(rng, T)
     L      = θ₀ - w*u
     R      = L + w
-    V      = rand(rng)
-    J      = floor(m*V)
+    V      = rand(rng, T)
+    J      = floor(Int, m*V)
     K      = (m - 1) - J 
     n_eval = 0
 
@@ -129,13 +129,13 @@ accept_slice_proposal(
 function accept_slice_proposal(
          ::SliceDoublingOut,
     model::GibbsObjective,
-    w    ::Real,
-    ℓy   ::Real,
-    θ₀   ::Real,
-    θ₁   ::Real,
-    L    ::Real,
-    R    ::Real,
-) 
+    w    ::T,
+    ℓy   ::T,
+    θ₀   ::T,
+    θ₁   ::T,
+    L    ::T,
+    R    ::T,
+) where {T<:Real}
     #=
         acceptance rule for the doubling procedure
 
@@ -147,7 +147,7 @@ function accept_slice_proposal(
     ℓπ_L = logdensity(model, L)
     ℓπ_R = logdensity(model, R)
 
-    while R - L > 1.1*w
+    while R - L > T(1.1)*w
         M = (L + R)/2
         if (θ₀ < M && θ₁ ≥ M) || (θ₀ ≥ M && θ₁ < M)
             D = true
@@ -172,10 +172,10 @@ function slice_sampling_univariate(
     rng  ::Random.AbstractRNG,
     alg  ::AbstractSliceSampling,
     model::GibbsObjective, 
-    w    ::Real,
-    θ₀   ::Real,
-    ℓπ₀  ::Real
-)
+    w    ::T,
+    θ₀   ::T,
+    ℓπ₀  ::T
+) where {T <: Real}
     #=
         Univariate slice sampling kernel
         (An acceptance rate < 1e-4 is treated as a potential infinite loop)
@@ -184,13 +184,13 @@ function slice_sampling_univariate(
         "Slice Sampling," 
         Annals of Statistics, 2003.
     =##
-    u  = rand(rng)
+    u  = rand(rng, T)
     ℓy = log(u) + ℓπ₀
 
     L, R, n_prop = find_interval(rng, alg, model, w, ℓy, θ₀)
 
     while true
-        U      = rand(rng)
+        U      = rand(rng, T)
         θ′      = L + U*(R - L)
         ℓπ′     = logdensity(model, θ′)
         n_prop += 1
@@ -214,14 +214,14 @@ function slice_sampling(
     rng      ::Random.AbstractRNG,
     alg      ::AbstractSliceSampling,
     model, 
-    θ        ::AbstractVector,
-)
+    θ        ::AbstractVector{T},
+) where {T <: Real}
     θ = copy(θ)
     w = alg.window
     @assert length(w) == length(θ)
     
     ℓp    = logdensity(model, θ)
-    ∑acc  = 0.0
+    ∑acc  = zero(T)
     n_acc = 0
     for idx in shuffle(rng, 1:length(θ))
         model_gibbs = GibbsObjective(model, idx, θ)

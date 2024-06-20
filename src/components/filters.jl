@@ -16,12 +16,12 @@ IEEE International Symposium on Circuits and Systems (ISCAS), 2014.
 Note: Technically speaking this filter is now overkill.
 """
 struct WindowedSinc <: AbstractDelayFilter
-    n_fft
+    n_fft::Int
 end
 
 function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
     n_fft = filter.n_fft
-    θ     = collect(0:n_fft-1)*2*π/n_fft
+    θ     = collect(0:n_fft-1)*2*T(π)/n_fft
     a_fd  = T(0.25)
     Tullio.@tullio avx=64 threads=false H[n,m,k] := begin
         if (n - 1) <= floor(Int, n_fft/2)
@@ -30,9 +30,10 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
             elseif (n - 1) <= ceil(Int, n_fft/2) - 2
                 exp(-1im*Δn[m,k]*θ[n])
             elseif (n - 1) <= ceil(Int, n_fft/2) - 1
-                a_fd*cos(Δn[m,k]*π) + (1 - a_fd)*exp(-1im*Δn[m,k]*2*π/n_fft*(n_fft/2 - 1))
+                a_fd*cos(Δn[m,k]*T(π)) +
+                    (1 - a_fd)*exp(-1im*Δn[m,k]*2*T(π)/n_fft*(T(n_fft)/2 - 1))
             elseif (n - 1) == ceil(Int, n_fft/2)
-                Complex{T}(cos(Δn[m,k]*π))
+                Complex{T}(cos(Δn[m,k]*T(π)))
             end
         else
             zero(Complex{T})
@@ -50,11 +51,11 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
 end
 
 struct ComplexShift <: AbstractDelayFilter
-    n_fft
+    n_fft::Int
 end
 
 function array_delay(filter::ComplexShift, Δn::Matrix{T}) where {T <: Real}
     n_fft = filter.n_fft
-    ω     = collect(0:n_fft-1)*2*π/n_fft
+    ω     = collect(0:n_fft-1)*2*T(π)/n_fft
     Tullio.@tullio H[n,m,k] := exp(-1im*Δn[m,k]*ω[n])
 end

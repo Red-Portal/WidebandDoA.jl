@@ -1,58 +1,16 @@
 
-struct UniformNormalLocalProposal{F <: Real}
-    mu   ::F
-    sigma::F
-end
-
-function ReversibleJump.local_proposal_sample(
-    rng  ::Random.AbstractRNG,
-         ::WidebandNormalGamma,
-    prop ::UniformNormalLocalProposal
-)
-    WidebandNormalGammaParam(
-        rand(rng, Uniform(-π/2, π/2)),
-        rand(rng, Normal(prop.mu, prop.sigma))
-    )
-end
-
-function ReversibleJump.local_proposal_logpdf(
-         ::WidebandNormalGamma,
-    prop ::UniformNormalLocalProposal,
-    θ    ::AbstractVector{<:WidebandNormalGammaParam},
-    j    ::Integer
-)
-    ℓλ = θ[j].loglambda
-    -log(π) + logpdf(Normal(prop.mu, prop.sigma), ℓλ)
-end
-
-function ReversibleJump.local_insert(
-      ::WidebandNormalGamma,
-    θ ::AbstractVector{<:WidebandNormalGammaParam},
-    j ::Integer,
-    θj::WidebandNormalGammaParam)
-    insert!(copy(θ), j, θj)
-end
-
-function ReversibleJump.local_deleteat(
-     ::WidebandNormalGamma,
-    θ::AbstractVector{<:WidebandNormalGammaParam},
-    j::Integer
-)
-    deleteat!(copy(θ), j), θ[j]
-end
-
-struct WidebandNormalGammaFlat{M}
+struct WidebandIsoIsoFlat{M}
     model::M
     order::Int
 end
 
 function logdensity(
-    wrapper::WidebandNormalGammaFlat,
+    wrapper::WidebandIsoIsoFlat,
     θ      ::AbstractVector{T}
 ) where {T <: Real}
     model  = wrapper.model
     order  = length(θ) ÷ 2
-    params = [WidebandNormalGammaParam{T}(θ[i], θ[order+i]) for i in 1:order]
+    params = [WidebandIsoIsoParam{T}(θ[i], θ[order+i]) for i in 1:order]
     ReversibleJump.logdensity(model, params)
 end
 
@@ -60,7 +18,7 @@ function ReversibleJump.transition_mcmc(
     rng    ::Random.AbstractRNG,
     sampler::AbstractSliceSampling,
     model,
-    θ      ::AbstractVector{WidebandNormalGammaParam{T}}
+    θ      ::AbstractVector{WidebandIsoIsoParam{T}}
 ) where {T<:Real}
     window_base     = sampler.window
     order           = length(θ)
@@ -69,21 +27,22 @@ function ReversibleJump.transition_mcmc(
         fill(last(window_base), order)
     )
     sampler_adapted = @set sampler.window = window
-    model_wrapper   = WidebandNormalGammaFlat(model, order)
+    model_wrapper   = WidebandIsoIsoFlat(model, order)
     ϕ               = T[θj.phi       for θj in θ]
     ℓλ              = T[θj.loglambda for θj in θ]
     θ_flat          = vcat(ϕ, ℓλ)
 
     θ_flat, ℓp, acc_rate = slice_sampling(rng, sampler_adapted, model_wrapper, θ_flat)
 
-    θ = WidebandNormalGammaParam{T}[
-        WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
+    θ = WidebandIsoIsoParam{T}[
+        WidebandIsoIsoParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
     ]
     θ, ℓp, (mcmc_acceptance_rate=acc_rate,)
 end
 
-struct WidebandNormalGammaMetropolis{
-    LK <: AbstractMetropolis, PK <: AbstractMetropolis
+struct WidebandIsoIsoMetropolis{
+    LK <: AbstractMetropolis,
+    PK <: AbstractMetropolis
 } <: AbstractMetropolis
     phi_kernel      ::PK
     loglambda_kernel::LK
@@ -91,14 +50,14 @@ end
 
 function ReversibleJump.transition_mcmc(
     rng    ::Random.AbstractRNG,
-    sampler::WidebandNormalGammaMetropolis,
+    sampler::WidebandIsoIsoMetropolis,
     model,
-    θ      ::AbstractVector{WidebandNormalGammaParam{T}}
+    θ      ::AbstractVector{WidebandIsoIsoParam{T}}
 ) where {T<:Real}
     SimpleUnPack.@unpack phi_kernel, loglambda_kernel = sampler
 
     order         = length(θ)
-    model_wrapper = WidebandNormalGammaFlat(model, order)
+    model_wrapper = WidebandIsoIsoFlat(model, order)
 
     ϕ       = T[θj.phi       for θj in θ]
     ℓλ      = T[θj.loglambda for θj in θ]
@@ -123,10 +82,9 @@ function ReversibleJump.transition_mcmc(
         α_ℓλ_avg    = α_ℓλ_avg*(j-1)/j + α/j
         θ_flat[ℓλ_idx] = θ′idx
     end
-    θ = WidebandNormalGammaParam{T}[
-        WidebandNormalGammaParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
+    θ = WidebandIsoIsoParam{T}[
+        WidebandIsoIsoParam(θ_flat[i], θ_flat[order+i]) for i in 1:order
     ]
     stats = (phi_acceptance_rate=α_ϕ_avg, loglambda_acceptance_rate=α_ℓλ_avg)
     θ, ℓp, stats
 end
-
