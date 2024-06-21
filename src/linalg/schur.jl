@@ -16,8 +16,8 @@ function inv_hermitian_striped_matrix!(S)
     N = size(S,1)
     ϵ = eps(S |> eltype |> real)
 
-    Tullio.@tullio threads=false ℓdetS := sum(log(abs(S[i,1,1])) + ϵ)
-    Tullio.@tullio threads=false S[i,1,1] = safe_complex_reciprocal(S[i,1,1], ϵ)
+    Tullio.@tullio ℓdetS := sum(log(abs(S[i,1,1])) + ϵ)
+    Tullio.@tullio S[i,1,1] = safe_complex_reciprocal(S[i,1,1], ϵ)
     
     X⁻¹Y_buf         = Array{eltype(S)}(undef, N, M, 1)
     YᴴX⁻¹_buf        = Array{eltype(S)}(undef, N, 1, M)
@@ -43,10 +43,10 @@ function inv_hermitian_striped_matrix!(S)
         #YᴴX⁻¹Y = Yᴴ ⊛ X⁻¹Y
         stripe_matmul!(Yᴴ, X⁻¹Y, YᴴX⁻¹Y)
 
-        Tullio.@tullio threads=false Z⁻¹[i,1,1] = safe_complex_reciprocal(Z[i,1,1] - YᴴX⁻¹Y[i,1,1], ϵ)
-        Tullio.@tullio threads=false ℓdetSdivE := -log(abs(Z⁻¹[i,1,1]) + ϵ)
+        Tullio.@tullio Z⁻¹[i,1,1] = safe_complex_reciprocal(Z[i,1,1] - YᴴX⁻¹Y[i,1,1], ϵ)
+        Tullio.@tullio ℓdetSdivE := -log(abs(Z⁻¹[i,1,1]) + ϵ)
 
-        Tullio.@tullio threads=false error := Z⁻¹[i,1,1]*(Z[i,1,1] - YᴴX⁻¹Y[i,1,1])
+        Tullio.@tullio error := Z⁻¹[i,1,1]*(Z[i,1,1] - YᴴX⁻¹Y[i,1,1])
 
         if !isfinite(ℓdetSdivE) || abs(error)/size(Z,1) > 5
             return nothing, -Inf
