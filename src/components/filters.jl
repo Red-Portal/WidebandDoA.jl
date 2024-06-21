@@ -1,6 +1,6 @@
 
 function inter_sensor_delay(ϕ::AbstractVector, Δx::AbstractVector, c)
-    Tullio.@tullio avx=64 threads=false τ[m,k] := Δx[m]*sin(ϕ[k])/c
+    Tullio.@tullio fastmath=false threads=false τ[m,k] := Δx[m]*sin(ϕ[k])/c
 end
 
 """
@@ -23,7 +23,7 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
     n_fft = filter.n_fft
     θ     = collect(0:n_fft-1)*2*T(π)/n_fft
     a_fd  = T(0.25)
-    Tullio.@tullio avx=64 threads=false H[n,m,k] := begin
+    Tullio.@tullio fastmath=false threads=false H[n,m,k] := begin
         if (n - 1) <= floor(Int, n_fft/2)
             if (n - 1) == 0
                 Complex{T}(1.0)
@@ -57,5 +57,5 @@ end
 function array_delay(filter::ComplexShift, Δn::Matrix{T}) where {T <: Real}
     n_fft = filter.n_fft
     ω     = collect(0:n_fft-1)*2*T(π)/n_fft
-    Tullio.@tullio H[n,m,k] := exp(-1im*Δn[m,k]*ω[n])
+    Tullio.@tullio threads=false fastmath=false H[n,m,k] := exp(-1im*Δn[m,k]*ω[n])
 end
