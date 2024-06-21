@@ -1,6 +1,6 @@
 
 using Accessors
-using DataFrames
+using DataFrames, DataFramesMeta
 using Plots, StatsPlots
 using ProgressMeter
 using Random, Random123
