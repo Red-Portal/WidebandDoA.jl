@@ -83,12 +83,13 @@ function run_simulation()
     ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
 
     prior = [
-        (dist="inversegamma", param1=0.1,  param2=0.1),
-        (dist="inversegamma", param1=0.01, param2=0.01),
-        (dist="normal",       param1=1.3,  param2=1.2),
-        (dist="normal",       param1=5.3,  param2=2.3),
-        (dist="normal",       param1=-0.8, param2=0.6),
-        (dist="normal",       param1=1.5,  param2=0.6),
+        (dist="inversegamma", param1=0.1,   param2=0.1),
+        (dist="inversegamma", param1=0.01,  param2=0.01),
+        (dist="inversegamma", param1=0.001, param2=0.001),
+        (dist="normal",       param1=1.3,   param2=1.2),
+        (dist="normal",       param1=5.3,   param2=2.3),
+        (dist="normal",       param1=-0.8,  param2=0.6),
+        (dist="normal",       param1=1.5,   param2=0.6),
     ]
 
     snrs = [-10, -8., -6, -4., -2, 0., 2, 4., 6, 8., 10]
@@ -137,4 +138,22 @@ function run_simulation()
         df
     end
     save(datadir("raw", "calibration_error.jld2"), "data", df) 
+end
+
+function process_data()
+    df = JLD2.load(datadir("raw", "calibration_error.jld2"), "data")
+    display(df)
+    
+    res = @chain df begin
+        @subset(
+            :dist   .== "normal",
+            :param1 .== 5.3,
+            :param2 .== 2.3
+        )
+        @orderby(:snr)
+        @select(:l1_naive_mean, :l1_naive_lower, :l1_naive_upper)
+        Array
+    end
+    display(res)
+    Plots.plot(-10:2:10, res[:,1], ribbon=(abs.(res[:,2]), res[:,3]))
 end
