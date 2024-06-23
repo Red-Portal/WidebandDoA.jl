@@ -23,7 +23,7 @@ function construct_default_model(
     M      = 20
     Δx     = range(0, M*0.5; length=M)
     c      = 1500
-    fs     = 1000
+    fs     = 2000
     
     filter = WidebandDoA.WindowedSinc(N)
     λ      = fill(10^(snr/10), length(ϕ))
