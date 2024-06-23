@@ -4,6 +4,7 @@ using DataFrames, DataFramesMeta
 using Plots, StatsPlots
 using ProgressMeter
 using Random, Random123
+using JLD2
 
 include("common.jl")
 
@@ -80,7 +81,7 @@ function run_simulation()
     n_samples = 2^12
     n_burn    = 2^7
     n_reps    = 2^7
-    ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/9
+    ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/11
 
     prior = [
         (dist="inversegamma", param1=0.1,   param2=0.1),
@@ -143,17 +144,27 @@ end
 function process_data()
     df = JLD2.load(datadir("raw", "calibration_error.jld2"), "data")
     display(df)
+    Plots.plot() |> display
     
-    res = @chain df begin
-        @subset(
-            :dist   .== "normal",
-            :param1 .== 5.3,
-            :param2 .== 2.3
-        )
-        @orderby(:snr)
-        @select(:l1_naive_mean, :l1_naive_lower, :l1_naive_upper)
-        Array
+    for (dist, param1, param2) in [
+        #("normal", 1.3, 1.2),
+        ("normal", 5.3, 2.3),
+        #("normal", -0.8, 0.6),
+        ("normal", 1.5, 0.6),
+        #("inversegamma", 0.01, 0.01),
+        ("inversegamma", 0.001, 0.001),
+    ]
+        res = @chain df begin
+            @subset(
+                :dist   .== dist,
+                :param1 .== param1,
+                :param2 .== param2
+            )
+            @orderby(:snr)
+            @select(:l1_naive_mean, :l1_naive_lower, :l1_naive_upper)
+            Array
+        end
+        display(res)
+        Plots.plot!(-10:2:10, res[:,1], ribbon=(abs.(res[:,2]), res[:,3])) |> display
     end
-    display(res)
-    Plots.plot(-10:2:10, res[:,1], ribbon=(abs.(res[:,2]), res[:,3]))
 end
