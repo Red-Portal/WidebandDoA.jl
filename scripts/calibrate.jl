@@ -87,10 +87,13 @@ function run_simulation()
         (dist="inversegamma", param1=0.1,   param2=0.1),
         (dist="inversegamma", param1=0.01,  param2=0.01),
         (dist="inversegamma", param1=0.001, param2=0.001),
-        (dist="normal",       param1=1.3,   param2=1.2),
-        (dist="normal",       param1=5.3,   param2=2.3),
-        (dist="normal",       param1=-0.8,  param2=0.6),
-        (dist="normal",       param1=1.5,   param2=0.6),
+        (dist="uniform",      param1=0.1,   param2=10.0),
+        (dist="uniform",      param1=0.01,  param2=100.0),
+        (dist="uniform",      param1=0.5,   param2=5.0),
+        (dist="lognormal",    param1=1.3,   param2=1.2),
+        (dist="lognormal",    param1=5.3,   param2=2.3),
+        (dist="lognormal",    param1=-0.8,  param2=0.6),
+        (dist="lognormal",    param1=1.5,   param2=0.6),
     ]
 
     snrs = [-10, -8., -6, -4., -2, 0., 2, 4., 6, 8., 10]
@@ -103,10 +106,12 @@ function run_simulation()
     df = @showprogress mapreduce(vcat, configs) do config
         (; dist, param1, param2, snr) = config
 
-        source_prior = if dist == "normal"
-            Normal(param1, param2)
-        else
+        source_prior = if dist == "lognormal"
+            LogNormal(param1, param2)
+        elseif "inversegamma"
             InverseGamma(param1, param2)
+        else
+            Uniform(param1, param2)
         end
 
         res = estimate_error(
@@ -147,10 +152,10 @@ function process_data()
     Plots.plot() |> display
     
     for (dist, param1, param2) in [
-        #("normal", 1.3, 1.2),
-        ("normal", 5.3, 2.3),
-        #("normal", -0.8, 0.6),
-        ("normal", 1.5, 0.6),
+        #("lognormal", 1.3, 1.2),
+        ("lognormal", 5.3, 2.3),
+        #("lognormal", -0.8, 0.6),
+        ("lognormal", 1.5, 0.6),
         #("inversegamma", 0.01, 0.01),
         ("inversegamma", 0.001, 0.001),
     ]
