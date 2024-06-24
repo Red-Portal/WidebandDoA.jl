@@ -81,7 +81,7 @@ function run_simulation()
     n_samples = 2^12
     n_burn    = 2^7
     n_reps    = 2^7
-    ϕ         = [-4, -3., -2, -1, 1, 2, 3, 4]*π/11
+    ϕ         = collect(-4:4)*π/11
 
     prior = [
         (dist="inversegamma", param1=0.1,   param2=0.1),
