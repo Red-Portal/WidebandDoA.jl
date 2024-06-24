@@ -108,7 +108,7 @@ function run_simulation()
 
         source_prior = if dist == "lognormal"
             LogNormal(param1, param2)
-        elseif "inversegamma"
+        elseif dist == "inversegamma"
             InverseGamma(param1, param2)
         else
             Uniform(param1, param2)
