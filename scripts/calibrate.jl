@@ -151,25 +151,38 @@ function process_data()
     display(df)
     Plots.plot() |> display
     
-    for (dist, param1, param2) in [
-        #("lognormal", 1.3, 1.2),
-        ("lognormal", 5.3, 2.3),
-        #("lognormal", -0.8, 0.6),
-        ("lognormal", 1.5, 0.6),
-        #("inversegamma", 0.01, 0.01),
-        ("inversegamma", 0.001, 0.001),
+    for (distname, param1, param2, dist) in [
+        #("lognormal",    1.3,   1.2,  LogNormal(1.3, 1.2)),
+        #("lognormal",    5.3,   2.3,  LogNormal(5.3, 2.3)),
+        #("lognormal"   , -0.8,  0.6,  LogNormal(-0.8, 0.6)),
+        #("lognormal"   ,  1.5,  0.6,  LogNormal(1.5, 0.6)),
+        ("inversegamma",  0.01, 0.01, InverseGamma(0.01, 0.01)),
+        #("inversegamma", 0.001, 0.001, InverseGamma(0.001, 0.001)),
+        ("uniform"   ,  0.1,  10.0, Uniform(0.1,   10.0)),
+        ("uniform"   , 0.01, 100.0, Uniform(0.01, 100.0)),
+        ("uniform"   ,  0.5,   5.0, Uniform(0.5,    5.0)),
     ]
         res = @chain df begin
             @subset(
-                :dist   .== dist,
+                :dist   .== distname,
                 :param1 .== param1,
                 :param2 .== param2
             )
             @orderby(:snr)
-            @select(:l1_naive_mean, :l1_naive_lower, :l1_naive_upper)
+            @select(
+                :l1_naive_mean,
+                :l1_naive_lower,
+                :l1_naive_upper
+            )
             Array
         end
         display(res)
-        Plots.plot!(-10:2:10, res[:,1], ribbon=(abs.(res[:,2]), res[:,3])) |> display
+        xrange = -10:2:10
+        Plots.plot!(
+            xrange, res[:,1],
+            ribbon=(abs.(res[:,2]), res[:,3]),
+            label="$(distname)($(param1), $(param2))"
+        ) |> display
+        #Plots.plot!(xrange, x -> 5*pdf(dist, 10^(x/10))) |> display
     end
 end
