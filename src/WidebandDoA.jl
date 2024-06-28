@@ -104,6 +104,11 @@ include("model/isoiso/reconstruct.jl")
 include("model/isoiso/rjmcmc_interface.jl")
 include("model/isoiso/mcmc_interface.jl")
 
+using ProgressMeter
+using StatsFuns
+
+include("relabel.jl")
+
 function __init__()
     @tullio threads=false grad=false fastmath=false
 end
