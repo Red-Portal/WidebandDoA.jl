@@ -28,12 +28,12 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
             if (n - 1) == 0
                 Complex{T}(1.0)
             elseif (n - 1) <= ceil(Int, n_fft/2) - 2
-                exp(-1im*Δn[m,k]*θ[n])
+                exp(-1im*-Δn[m,k]*θ[n])
             elseif (n - 1) <= ceil(Int, n_fft/2) - 1
-                a_fd*cos(Δn[m,k]*T(π)) +
-                    (1 - a_fd)*exp(-1im*Δn[m,k]*2*T(π)/n_fft*(T(n_fft)/2 - 1))
+                a_fd*cos(-Δn[m,k]*T(π)) +
+                    (1 - a_fd)*exp(-1im*-Δn[m,k]*2*T(π)/n_fft*(T(n_fft)/2 - 1))
             elseif (n - 1) == ceil(Int, n_fft/2)
-                Complex{T}(cos(Δn[m,k]*T(π)))
+                Complex{T}(cos(-Δn[m,k]*T(π)))
             end
         else
             zero(Complex{T})
@@ -57,5 +57,5 @@ end
 function array_delay(filter::ComplexShift, Δn::Matrix{T}) where {T <: Real}
     n_fft = filter.n_fft
     ω     = collect(0:n_fft-1)*2*T(π)/n_fft
-    Tullio.@tullio H[n,m,k] := exp(-1im*Δn[m,k]*ω[n])
+    Tullio.@tullio H[n,m,k] := exp(1im*Δn[m,k]*ω[n])
 end
