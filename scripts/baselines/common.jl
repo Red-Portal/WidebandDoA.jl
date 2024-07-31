@@ -19,7 +19,7 @@ function proj(θ::AbstractVector, fc::Real, conf::ArrayConfig)
     if length(θ) == 0
         Zeros(eltype(θ), n_channels, n_channels)
     else
-        A = steering_matrix(θ, fc, conf)
+        A   = steering_matrix(θ, fc, conf)
         A*pinv(A)
     end
 end
@@ -32,7 +32,7 @@ function snapshot_covariance(
 )
     X_ch = map(eachcol(x)) do x_ch
         l_snap = div(length(x_ch), n_temporal_snapshot)
-        stft(x_ch, l_snap, 0; nfft=n_fft)
+        DSP.stft(x_ch, l_snap, div(l_snap,2); nfft=n_fft)
     end
     X = cat(X_ch..., dims=3)
     @tullio Σ[i,j,n] := X[n,k,i]*conj(X[n,k,j])/size(X,2)

@@ -6,9 +6,9 @@ function loglikelihood(
     conf   ::ArrayConfig
 )
     sum(enumerate(f_range)) do (n, fc)
-        P    = proj(θ, fc, conf)
-        P⊥  = I - P
-        Rω   = view(R,:,:,n)
+        P     = proj(θ, fc, conf)
+        P⊥   = I - P
+        Rω    = view(R,:,:,n)
         -log(real(tr(P⊥*Rω)))
     end
 end
@@ -30,25 +30,43 @@ function ratio_test_statistic(
     P⊥_alt = I - P_alt
     P⊥_nul = I - P_nul
 
-    -log(real(tr(P⊥_alt*R_bin))) + log(real(tr(P⊥_nul*R_bin)))
+    invlike_alt = real(tr(P⊥_alt*R_bin))
+    invlike_nul = real(tr(P⊥_nul*R_bin))
+
+    -log(invlike_alt) + log(invlike_nul)
+end
+
+function null_statistics(
+    n_temp_snapshots::Int,
+    n_channel       ::Int,
+    m               ::Int,
+)
+    n1    = n_temp_snapshots*(2 + 1)
+    n2    = n_temp_snapshots*(2*n_channel - 2*m - 1)
+    μ     = digamma(n1/2 + n2/2) - digamma(n2/2)
+    σ2    = trigamma(n2/2)       - trigamma(n1/2 + n2/2)
+    μ, σ2
 end
 
 function boostrap_statistics(
     rng             ::Random.AbstractRNG,
     z               ::AbstractVector,
+    n_temp_snapshots::Int,
+    n_channel       ::Int,
+    m               ::Int,
     n_bootstrap     ::Int,
     n_bootstrap_nest::Int,
-    n_bins          ::Int
+    n_bins          ::Int,
 )
-    μ_est = mean(z)
+    μ, _  = null_statistics(n_temp_snapshots, n_channel, m)
     map(1:n_bootstrap) do _
         z_boot      = StatsBase.sample(rng, z, n_bins)
         μ_boot      = mean(z_boot)
         μ_boot_nest = map(1:n_bootstrap_nest) do _
             mean(StatsBase.sample(rng, z_boot, n_bins))
         end
-        σ_boot = std(μ_boot_nest; corrected=true)
-        abs(μ_boot - μ_est) / σ_boot
+        σ_nest = std(μ_boot_nest; corrected=true, mean=μ_boot)
+        abs(μ_boot - μ) / σ_nest
     end
 end
 
@@ -59,10 +77,7 @@ function test_statistic(
     m               ::Int,
 )
     μ_est = mean(z)
-    n1    = n_temp_snapshots*(2 + 1)
-    n2    = n_temp_snapshots*(2*n_channel - 2*m - 1)
-    μ     = digamma(n1/2 + n2/2) - digamma(n2/2)
-    σ2    = trigamma(n2/2)       - trigamma(n1/2 + n2/2)
+    μ, σ2 = null_statistics(n_temp_snapshots, n_channel, m)
     abs(μ_est - μ) / sqrt(σ2)
 end
 
@@ -101,9 +116,9 @@ function likeratiotest(
     conf                ::ArrayConfig;
     n_bootstrap      = 1024,
     n_bootstrap_nest = 1024,
-    n_eval_point     = 64,
+    n_eval_point     = 1024,
     rate_upsample    = 8,
-    visualize        = false
+    visualize        = false,
 )
     #=
         P. Chung, J. F. Bohme, C. F. Mecklenbrauker and A. O. Hero, 
@@ -133,10 +148,21 @@ function likeratiotest(
             ratio_test_statistic(θ_alt, θ, view(R, :,:,n), fc, conf)
         end
 
-        T_boot  = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, n_bins)
+        T_boot  = boostrap_statistics(
+            rng,
+            z,
+            n_temp_snapshots,
+            n_channel,
+            m,
+            n_bootstrap,
+            n_bootstrap_nest,
+            n_bins
+        )
         T       = test_statistic(z, n_temp_snapshots, n_channel, m)
         rank    = sum(T_boot .< T)
         p_value = 1 - rank/n_bootstrap
+
+        @info("", quantile(T_boot, (0.1, 0.5, 0.9)), T, rank, p_value)
 
         p_values[m] = p_value
         θ           = θ_alt

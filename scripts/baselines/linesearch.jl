@@ -113,7 +113,7 @@ function fine_optimization(t_coarse::AbstractVector,
 
     t_opt = t_coarse
     for i = 1:n_targets
-        for fuck = 1:3
+        for _ = 1:3
             s′tᵢ  = eval_chebyschev_s′(t_opt[i], g₂, t, w)
             s′′tᵢ = eval_chebyschev_s′′(t_opt[i], g₂, t, w)
 
@@ -123,11 +123,11 @@ function fine_optimization(t_coarse::AbstractVector,
     t_opt
 end
 
-function barycentric_linesearch(doa_spectrum::Function,
-                                n_targets::Int,
-                                n_eval_point::Int,
+function barycentric_linesearch(doa_spectrum ::Function,
+                                n_targets    ::Int,
+                                n_eval_point ::Int,
                                 rate_upsample::Real;
-                                visualize=true)
+                                visualize = true)
     # J. Selva, 
     # "Efficient Wideband DOA Estimation Through Function Evaluation Techniques," 
     # in IEEE Transactions on Signal Processing, 2018.
