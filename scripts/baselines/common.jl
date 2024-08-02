@@ -19,7 +19,7 @@ function proj(θ::AbstractVector, fc::Real, conf::ArrayConfig)
     if length(θ) == 0
         Zeros(eltype(θ), n_channels, n_channels)
     else
-        A   = steering_matrix(θ, fc, conf)
+        A = steering_matrix(θ, fc, conf)
         A*pinv(A)
     end
 end

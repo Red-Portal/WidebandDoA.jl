@@ -12,4 +12,4 @@ import StatsBase
 
 include("common.jl")
 include("linesearch.jl")
-include("benjaminihochberg.jl")
+include("likeratiotest.jl")
