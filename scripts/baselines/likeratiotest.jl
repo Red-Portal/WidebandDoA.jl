@@ -10,7 +10,7 @@ function loglikelihood(
             P     = proj(θ, fc, conf)
             P⊥   = I - P
             Rω    = view(R,:,:,n)
-            -log(real(tr(P⊥*Rω)))
+            -real(tr(P⊥*Rω))
         catch
             Inf
         end
@@ -74,7 +74,7 @@ function boostrap_statistics(
     end
 end
 
-function test_statistic(
+function test_threshold(
     z               ::AbstractVector,
     n_temp_snapshots::Int,
     n_channel       ::Int,
@@ -118,11 +118,11 @@ function likeratiotest(
     n_temp_snapshots    ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap      = 1024,
-    n_bootstrap_nest = 1024,
+    n_bootstrap      = 128,
+    n_bootstrap_nest = 128,
     n_eval_point     = 1024,
     rate_upsample    = 8,
-    visualize        = false,
+    visualize        = true,
 )
     #=
         P. Chung, J. F. Bohme, C. F. Mecklenbrauker and A. O. Hero, 
@@ -157,21 +157,27 @@ function likeratiotest(
         end
 
         T_boot  = boostrap_statistics(
-            rng,
-            z,
-            n_temp_snapshots,
-            n_channel,
-            m,
-            n_bootstrap,
-            n_bootstrap_nest,
-            n_bins
+           rng,
+           z,
+           n_temp_snapshots,
+           n_channel,
+           m,
+           n_bootstrap,
+           n_bootstrap_nest,
+           n_bins
         )
-        T       = test_statistic(z, n_temp_snapshots, n_channel, m)
-        rank    = sum(T_boot .< T)
+        T_thres = test_threshold(z, n_temp_snapshots, n_channel, m)
+        rank    = sum(T_boot .< T_thres)
         p_value = 1 - rank/n_bootstrap
 
         if visualize
-            @info("", m, quantile(T_boot, (0.1, 0.5, 0.9)), T, rank, p_value)
+            @info(
+                "",
+                test_statistic = mean(T_boot),
+                test_threshold = T_thres,
+                rank           = rank,
+                p_value
+            )
         end
 
         p_values[m] = p_value
