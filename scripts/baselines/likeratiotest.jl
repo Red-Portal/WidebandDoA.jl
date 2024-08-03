@@ -1,22 +1,4 @@
 
-function loglikelihood(
-    θ      ::AbstractVector,
-    R, 
-    f_range::AbstractVector,
-    conf   ::ArrayConfig
-)
-    sum(enumerate(f_range)) do (n, fc)
-        try
-            P     = proj(θ, fc, conf)
-            P⊥   = I - P
-            Rω    = view(R,:,:,n)
-            -real(tr(P⊥*Rω))
-        catch
-            Inf
-        end
-    end
-end
-
 function ratio_test_statistic(
     θ_alt  ::AbstractVector,
     θ_nul  ::AbstractVector,
@@ -186,5 +168,34 @@ function likeratiotest(
     k = benjaminihochberg(
         p_values, rate_false_detection, n_max_targets
     )
-    k, k == 0 ? nothing : θ[1:k]
+    k, k == 0 ? Float64[] : θ[1:k]
+end
+
+function likeratiotest(
+    R,
+    rate_false_detection::Real,
+    n_max_targets       ::Int,
+    n_temp_snapshots    ::Int,
+    f_range             ::AbstractVector,
+    conf                ::ArrayConfig;
+    n_bootstrap      = 128,
+    n_bootstrap_nest = 128,
+    n_eval_point     = 1024,
+    rate_upsample    = 8,
+    visualize        = true,
+)
+   likeratiotest(
+       Random.default_rng(),
+       R,
+       rate_false_detection,
+       n_max_targets,
+       n_temp_snapshots,
+       f_range,
+       conf;
+       n_bootstrap      = n_bootstrap,
+       n_bootstrap_nest = n_bootstrap_nest,
+       n_eval_point     = n_eval_point,
+       rate_upsample    = rate_upsample,
+       visualize        = visualize,
+    ) 
 end

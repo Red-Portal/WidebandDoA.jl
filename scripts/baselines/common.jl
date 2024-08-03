@@ -14,16 +14,6 @@ function steering_matrix(θ::AbstractVector, fc::Real, conf::ArrayConfig)
     end
 end
 
-function proj(θ::AbstractVector, fc::Real, conf::ArrayConfig)
-    n_channels = length(conf.Δx)
-    if length(θ) == 0
-        Zeros(eltype(θ), n_channels, n_channels)
-    else
-        A = steering_matrix(θ, fc, conf)
-        A*pinv(A)
-    end
-end
-
 function snapshot_covariance(
     x                  ::Array,
     n_fft              ::Int,
