@@ -68,9 +68,10 @@ function test_threshold(
 end
 
 function benjaminihochberg(
-    pvals::AbstractVector,
-    q    ::Real,
-    M    ::Int
+    pvals    ::AbstractVector,
+    q        ::Real,
+    M        ::Int,
+    visualize::Bool
 )
     orders_sorted = sortperm(pvals)
     pvals_sorted  = pvals[orders_sorted]
@@ -82,6 +83,11 @@ function benjaminihochberg(
         else
             break
         end
+    end
+
+    if visualize
+        Plots.plot(sort(pvals_sorted)) |> display
+        Plots.plot!(1:M, m -> q*m/M) |> display
     end
 
     if k == 0
@@ -97,12 +103,13 @@ function likeratiotest(
     R,
     rate_false_detection::Real,
     n_max_targets       ::Int,
-    n_temp_snapshots    ::Int,
+    n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
     n_bootstrap      = 128,
     n_bootstrap_nest = 128,
-    n_eval_point     = 1024,
+    n_eval_point     = 256,
+    n_am_iterations  = 10,
     rate_upsample    = 8,
     visualize        = true,
 )
@@ -117,20 +124,35 @@ function likeratiotest(
 
     @assert n_max_targets < n_channel
 
-    p_values = ones(n_max_targets)
-    θ        = Float64[]
-    for m in 1:n_max_targets
-        θ′ = barycentric_linesearch(
-            1, 
-            n_eval_point, 
-            rate_upsample; 
-            visualize=visualize
-        ) do θ_range
-            map(θi -> loglikelihood(vcat(θ, θi), R, f_range, conf), θ_range)
-        end
-        θ_alt = vcat(θ, θ′)
+    p_values = Float64[]
+    θs       = [Float64[]]
 
-        if !isfinite(loglikelihood(θ_alt, R, f_range, conf))
+    for m in 1:n_max_targets
+        θ        = last(θs)
+        θ_init   = dml_incremental_optimize(
+            θ,
+            R,
+            n_snapshots,
+            f_range,
+            conf;
+            n_eval_point,
+            rate_upsample,
+            visualize,
+        )
+        θ_alt, _ = dml_alternating_maximization(
+            R,
+            m,
+            n_snapshots,
+            f_range,
+            conf;
+            visualize,
+            θ_init,
+            n_iterations=n_am_iterations,
+            n_eval_point,
+            rate_upsample,
+        )
+
+        if !isfinite(dml_loglikelihood(θ_alt, R, f_range, conf))
             break
         end
 
@@ -141,14 +163,14 @@ function likeratiotest(
         T_boot  = boostrap_statistics(
            rng,
            z,
-           n_temp_snapshots,
+           n_snapshots,
            n_channel,
            m,
            n_bootstrap,
            n_bootstrap_nest,
            n_bins
         )
-        T_thres = test_threshold(z, n_temp_snapshots, n_channel, m)
+        T_thres = test_threshold(z, n_snapshots, n_channel, m)
         rank    = sum(T_boot .< T_thres)
         p_value = 1 - rank/n_bootstrap
 
@@ -162,25 +184,29 @@ function likeratiotest(
             )
         end
 
-        p_values[m] = p_value
-        θ           = θ_alt
+        push!(p_values, p_value)
+        push!(θs, θ_alt)
     end
     k = benjaminihochberg(
-        p_values, rate_false_detection, n_max_targets
+        p_values,
+        rate_false_detection,
+        n_max_targets,
+        visualize
     )
-    k, k == 0 ? Float64[] : θ[1:k]
+    k, θs[k+1]
 end
 
 function likeratiotest(
     R,
     rate_false_detection::Real,
     n_max_targets       ::Int,
-    n_temp_snapshots    ::Int,
+    n_snapshots    ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
     n_bootstrap      = 128,
     n_bootstrap_nest = 128,
-    n_eval_point     = 1024,
+    n_eval_point     = 256,
+    n_am_iterations  = 10,
     rate_upsample    = 8,
     visualize        = true,
 )
@@ -189,11 +215,12 @@ function likeratiotest(
        R,
        rate_false_detection,
        n_max_targets,
-       n_temp_snapshots,
+       n_snapshots,
        f_range,
        conf;
        n_bootstrap      = n_bootstrap,
        n_bootstrap_nest = n_bootstrap_nest,
+       n_am_iterations  = n_am_iterations,
        n_eval_point     = n_eval_point,
        rate_upsample    = rate_upsample,
        visualize        = visualize,

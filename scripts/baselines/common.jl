@@ -20,11 +20,11 @@ function snapshot_covariance(
     fs                 ::Real,
     n_temporal_snapshot::Int
 )
-    X_ch = map(eachcol(x)) do x_ch
-        l_snap = div(length(x_ch), n_temporal_snapshot)
-        DSP.stft(x_ch, l_snap, div(l_snap,2); nfft=n_fft)
+    l_snap = div(size(x, 1), n_temporal_snapshot)
+    X_ch   = map(eachcol(x)) do x_ch
+        DSP.stft(x_ch, l_snap, 0; nfft=n_fft)
     end
-    X = cat(X_ch..., dims=3)
+    X      = cat(X_ch..., dims=3)
     @tullio Σ[i,j,n] := X[n,k,i]*conj(X[n,k,j])/size(X,2)
 
     Δf      = fs / n_fft
@@ -32,4 +32,3 @@ function snapshot_covariance(
 
     Σ, X, f_range
 end
-
