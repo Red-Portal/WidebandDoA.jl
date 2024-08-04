@@ -113,9 +113,9 @@ where \$z_x\$ and \$z_{\\epsilon}\$ are independent standard Gaussian vectors.
 function Base.rand(
     rng       ::Random.AbstractRNG,
     likelihood::WidebandIsoIsoLikelihood,
-    prior     ::AbstractWidebandPrior,
     x         ::AbstractMatrix,
     phi       ::AbstractVector;
+    prior     ::Union{<:AbstractWidebandPrior,Nothing} = nothing,
     sigma     ::Real = rand(rng, InverseGamma(prior.alpha, prior.beta)),
 )
     @unpack n_snapshots, delay_filter, Δx, c, fs = likelihood
