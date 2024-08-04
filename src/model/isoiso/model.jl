@@ -61,7 +61,6 @@ function Base.rand(rng::Random.AbstractRNG, model::WidebandIsoIsoModel)
     data   = rand(
         rng,
         model.likelihood,
-        model.prior,
         params.sourcesignals,
         params.phi;
         sigma=params.sigma
