@@ -14,7 +14,7 @@
         WindowedSinc(N),
         ComplexShift(N)
     ]
-        H = WidebandDoA.array_delay(filter, delays)
+        H = WidebandDoA.array_delay(filter, -delays)
         @tullio Y[n,m,k] := H[n,m,k]*X[n]
         y = real.(ifft(Y, 1))
 
