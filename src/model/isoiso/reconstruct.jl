@@ -1,11 +1,13 @@
 
 function reconstruct(
-    model ::WidebandIsoIsoModel,
+    cond  ::WidebandConditioned,
     params::AbstractVector{<:WidebandIsoIsoParam},
 )
-    @unpack y, y_fft, y_power, prior = model
-    @unpack delay_filter, Δx, c, fs, alpha, beta, alpha_lambda, beta_lambda, order_prior = prior
-    @unpack alpha, beta = prior
+    @unpack model, data = cond
+    @unpack y, y_fft, y_power = data
+    @unpack prior, likelihood = model
+    @unpack delay_filter, Δx, c, fs = likelihood
+    @unpack alpha, beta, order_prior = prior
 
     # Σ_post  = (W⁻¹ + HᴴH)⁻¹
     # μ_post  = Σx_post Hᴴy
@@ -28,7 +30,7 @@ function reconstruct(
     Tullio.@tullio W⁻¹pHᴴH_S[n,j,k] := (j == k) ? HᴴH_S[n,j,k] + 1/λ[k] : HᴴH_S[n,j,k]
     Tullio.@tullio Hᴴy_S[n,k]       := conj(H_S[n,m,k]) * y_fft[n,m]
 
-    Σ_post_S, _ = Wideband.inv_hermitian_striped_matrix!(W⁻¹pHᴴH_S)
+    Σ_post_S, _ = WidebandDoA.inv_hermitian_striped_matrix!(W⁻¹pHᴴH_S)
 
     Tullio.@tullio threads=false μ_post_S[n,k] := Σ_post_S[n,k,j] * Hᴴy_S[n,j]
 
