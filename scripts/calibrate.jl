@@ -63,7 +63,7 @@ function estimate_error(
         rng  = Philox4x(UInt64, seed, 8)
         set_counter!(rng, key)
 
-	N     = 64
+	N     = 128
         n_dft = 1024
 	model = construct_default_model(N, fs)
 	c, Δx = model.likelihood.c, model.likelihood.Δx
@@ -166,20 +166,20 @@ function run_simulation()
 end
 
 function process_data()
-    df = JLD2.load(datadir("raw", "calibration_error.jld2"), "data")
+    df = JLD2.load(datadir("raw", "calibration_error_fullband.jld2"), "data")
     display(df)
     Plots.plot() |> display
     
     for (distname, param1, param2, dist) in [
-        #("lognormal",    1.3,   1.2,  LogNormal(1.3, 1.2)),
-        #("lognormal",    5.3,   2.3,  LogNormal(5.3, 2.3)),
+        ("lognormal",    1.3,   1.2,  LogNormal(1.3, 1.2)),
+        ("lognormal",    5.3,   2.3,  LogNormal(5.3, 2.3)),
         #("lognormal"   , -0.8,  0.6,  LogNormal(-0.8, 0.6)),
         #("lognormal"   ,  1.5,  0.6,  LogNormal(1.5, 0.6)),
         ("inversegamma",  0.01, 0.01, InverseGamma(0.01, 0.01)),
         #("inversegamma", 0.001, 0.001, InverseGamma(0.001, 0.001)),
-        ("uniform"   ,  0.1,  10.0, Uniform(0.1,   10.0)),
-        ("uniform"   , 0.01, 100.0, Uniform(0.01, 100.0)),
-        ("uniform"   ,  0.5,   5.0, Uniform(0.5,    5.0)),
+        #("uniform"   ,  0.1,  10.0, Uniform(0.1,   10.0)),
+        #("uniform"   , 0.01, 100.0, Uniform(0.01, 100.0)),
+        #("uniform"   ,  0.5,   5.0, Uniform(0.5,    5.0)),
     ]
         res = @chain df begin
             @subset(
