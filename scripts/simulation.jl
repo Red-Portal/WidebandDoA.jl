@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.42
+# v0.19.43
 
 using Markdown
 using InteractiveUtils
@@ -23,13 +23,73 @@ begin
 	using WidebandDoA
 	using StableRNGs
 	using LinearAlgebra
+
+	include("scratch.jl")
 end
 
+# ╔═╡ 56b27ce4-49a7-49ed-933f-99b94ccb43f6
+begin
+	include("common.jl")
+
+	rng = Random.default_rng()
+	ϕ   = [-0.5, 0.5, 1.0]
+	snr = 0.0
+
+	N     = 64
+    n_dft = 1024
+	fs    = 2000.
+	model = construct_default_model(N, fs)
+	c, Δx = model.likelihood.c, model.likelihood.Δx
+	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, [100, 100, 100], [300, 300, 300], fs, 1.0, Δx, c)
+	cond  = WidebandConditioned(model, y)
+end
+
+# ╔═╡ 2ef0c90f-393a-4748-a96b-34f0c71ab1ac
+# ╠═╡ disabled = true
+#=╠═╡
+begin
+	rng    = StableRNG(1)
+    N      = 32
+    M      = 20
+    Δx     = range(0, M*0.5; length=M)
+    c      = 1500
+    fs     = 4000
+    #ϕ      = [-π/4, 0.01, π/4]
+    #ϕ      = [-2*π/5, -2.1*π/5, π/5, 2*π/5, 0.01]
+    ϕ      = (-4:4)*π/11
+    filter = WidebandDoA.WindowedSinc(N)
+    λ      = fill(0.2, length(ϕ))
+    #λ      = [3.0, 3.0, 3.0, 0.2, 3.0, 3.0, 3.0, 3.0]
+    #λ      = [3.0, 0.2, 5.0]
+    σ      = 1.0
+
+	#α_λ, β_λ = 2.1, 0.6823408279481948
+	#α_λ, β_λ = 0.01, 0.01
+
+	source_prior = InverseGamma(0.01, 0.01)
+	#source_prior = LogNormal(2.3^2, 2.3)
+
+    order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
+    model       = WidebandDoA.WidebandIsoIsoModel(
+        N, Δx, c, fs, source_prior; order_prior, delay_filter=filter
+    )
+	
+    params = rand(rng, model.prior; k=length(ϕ), sigma=σ, phi=ϕ, lambda=λ)
+    y      = rand(rng, model.likelihood, params.sourcesignals, ϕ; sigma=σ)
+    #y     /= std(y)
+
+    cond = WidebandConditioned(model, y)
+end
+  ╠═╡ =#
+
 # ╔═╡ 5cc88c68-9db3-4ec5-9262-f9fed684cdda
+# ╠═╡ disabled = true
+#=╠═╡
 begin
 	Plots.plot(10.0.^(range(-10, 10; length=256)/10), x -> pdf(source_prior, x), xscale=:log10)
 	Plots.vline!(λ)
 end
+  ╠═╡ =#
 
 # ╔═╡ 7da18e2b-2303-4abe-9a78-3a960c562dc8
 begin
@@ -102,65 +162,6 @@ begin
 	Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 end
 
-# ╔═╡ 290258ea-cb0b-420a-92a1-370732b76cd9
-begin
-	k = 3
-	lambdas = [exp(sample[k].loglambda) for sample in samples[n_samples÷10:end]]
-	Plots.stephist(lambdas, bins=64, label="SNR (λ) Posterior", fill=true)
-	Plots.vline!(λ[k:k], label="True SNR", color=:red)
-end
-
-# ╔═╡ 2ef0c90f-393a-4748-a96b-34f0c71ab1ac
-# ╠═╡ disabled = true
-#=╠═╡
-begin
-	rng    = StableRNG(1)
-    N      = 32
-    M      = 20
-    Δx     = range(0, M*0.5; length=M)
-    c      = 1500
-    fs     = 2000
-    #ϕ      = [-π/4, 0.01, π/4]
-    #ϕ      = [-2*π/5, -2.1*π/5, π/5, 2*π/5, 0.01]
-    ϕ      = (-4:4)*π/11
-    filter = WidebandDoA.WindowedSinc(N)
-    λ      = fill(0.2, length(ϕ))
-    #λ      = [3.0, 3.0, 3.0, 0.2, 3.0, 3.0, 3.0, 3.0]
-    #λ      = [3.0, 0.2, 5.0]
-    σ      = 1.0
-
-	#α_λ, β_λ = 2.1, 0.6823408279481948
-	#α_λ, β_λ = 0.01, 0.01
-
-	#source_prior = InverseGamma(0.01, 0.01)
-	source_prior = LogNormal(2.3^2, 2.3)
-
-    order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
-    model       = WidebandDoA.WidebandIsoIsoModel(
-        N, Δx, c, fs, source_prior; order_prior, delay_filter=filter
-    )
-
-    params = rand(rng, model.prior; k=length(ϕ), sigma=σ, phi=ϕ, lambda=λ)
-    y      = rand(rng, model.likelihood, model.prior, params.sourcesignals, ϕ; sigma=σ)
-    #y     /= std(y)
-
-    cond = WidebandConditioned(model, y)
-end
-  ╠═╡ =#
-
-# ╔═╡ 56b27ce4-49a7-49ed-933f-99b94ccb43f6
-begin
-	include("common.jl")
-
-	rng = Random.default_rng()
-	ϕ   = collect(-4:4)*π/11
-	snr = -5.0
-
-	source_prior = LogNormal(2.3^2, 2.3)
-	model, _ = construct_default_model(rng, ϕ, snr)
-    cond    = @set model.model.prior.source_prior = source_prior
-end
-
 # ╔═╡ Cell order:
 # ╠═71585db6-d5de-11ee-2f91-6306270cfdbb
 # ╠═fd1c1453-8293-4371-9296-8b3b8baad279
@@ -175,4 +176,3 @@ end
 # ╠═05e2cf48-8b23-4c94-8146-3f8fa4ac8def
 # ╠═f20198ec-c064-4571-a983-83aab0e96eea
 # ╠═bb716eb6-ecb2-4ce3-b76c-8f575d159ea4
-# ╠═290258ea-cb0b-420a-92a1-370732b76cd9

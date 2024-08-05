@@ -6,7 +6,6 @@ using Peaks
 using Plots
 using SpecialFunctions
 using StatsFuns
-using STFT
 
 import StatsBase
 

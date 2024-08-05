@@ -54,15 +54,22 @@ function run_rjmcmc(rng, cond, n_samples, n_burn)
     k_post, k_post_rb
 end
 
-function estimate_error(snr, ϕ, source_prior, n_samples, n_burn, n_reps)
+function estimate_error(
+    snr, ϕ, f_begin, f_end, fs, source_prior, n_samples, n_burn, n_reps
+)
     k_true = length(ϕ)
     data   = pmap(1:n_reps) do key
         seed = (0x38bef07cf9cc549d, 0x49e2430080b3f797)
         rng  = Philox4x(UInt64, seed, 8)
         set_counter!(rng, key)
 
-        cond, _ = construct_default_model(rng, ϕ, snr)
-        cond    = @set cond.model.prior.source_prior = source_prior
+	N     = 64
+        n_dft = 1024
+	model = construct_default_model(N, fs)
+	c, Δx = model.likelihood.c, model.likelihood.Δx
+	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, f_begin, f_end, fs, 1.0, Δx, c)
+	cond  = WidebandConditioned(model, y)
+        cond  = @set cond.model.prior.source_prior = source_prior
 
         k_post, k_post_rb = run_rjmcmc(rng, cond, n_samples, n_burn)   
         (
@@ -81,7 +88,18 @@ function run_simulation()
     n_samples = 2^12
     n_burn    = 2^7
     n_reps    = 2^7
-    ϕ         = collect(-4:4)*π/11
+
+    name    = "fullband"
+    ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
+    fs      = 2000.0
+    f_begin = 0.0
+    f_end   = fs/2
+
+    # name    = "bandlimited"
+    # ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
+    # fs      = 2000.0
+    # f_begin = [200,300,400,500,600]
+    # f_end   = [300,400,500,600,700]
 
     prior = [
         (dist="inversegamma", param1=0.1,   param2=0.1),
@@ -115,7 +133,8 @@ function run_simulation()
         end
 
         res = estimate_error(
-            snr, ϕ, source_prior, n_samples, n_burn, n_reps
+            snr, ϕ, f_begin, f_end, fs,
+            source_prior, n_samples, n_burn, n_reps
         )
 
         df = DataFrame(
@@ -143,7 +162,7 @@ function run_simulation()
         display(df)
         df
     end
-    save(datadir("raw", "calibration_error.jld2"), "data", df) 
+    save(datadir("raw", "calibration_error_$(name).jld2"), "data", df) 
 end
 
 function process_data()

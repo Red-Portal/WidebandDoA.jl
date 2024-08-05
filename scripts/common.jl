@@ -1,10 +1,13 @@
 
 using Bootstrap
+using DSP
 using Distributions
 using DrWatson
-using DSP
+using FFTW
+using FillArrays
 using LinearAlgebra
 using MKL
+using Random
 using ReversibleJump
 using WidebandDoA
 
@@ -16,34 +19,88 @@ function system_setup(; use_mkl=false, is_hyper=false, start)
     BLAS.set_num_threads(1)
 end
 
-function construct_default_model(
-    rng::Random.AbstractRNG, ϕ::AbstractVector, snr::Real
+function simulate_signal(
+    rng      ::Random.AbstractRNG,
+    n_samples::Int,
+    n_dft    ::Int,
+    ϕ        ::AbstractVector, 
+    snr      ::Union{<:AbstractVector,<:Real},
+    f_begin  ::Union{<:AbstractVector,<:Real},
+    f_end    ::Union{<:AbstractVector,<:Real},
+    fs       ::Real,
+    noise_pow::Real,
+    Δx       ::AbstractVector,
+    c        ::Real;
+    visualize::Bool = false,
 )
-    N      = 32
-    M      = 20
-    Δx     = range(0, M*0.5; length=M)
-    c      = 1500
-    fs     = 2000
-    
-    filter = WidebandDoA.WindowedSinc(N)
-    λ      = fill(10^(snr/10), length(ϕ))
-    σ      = 1.0
+    @assert n_dft ≥ n_samples
 
-    # P[λ > 0.1] = 99%
-    α_λ, β_λ = 2.1, 0.6823408279481948
-    source_prior = InverseGamma(α_λ, β_λ)
+    n_sources = length(ϕ)
+    if snr isa Real
+        snr = Fill(snr, n_sources)
+    end
+    if f_begin isa Real
+        f_begin = Fill(f_begin, n_sources)
+    end
+    if f_end isa Real
+        f_end = Fill(f_end, n_sources)
+    end
+    filter = WidebandDoA.WindowedSinc(n_dft)
+    x_pad  = randn(rng, n_dft, length(ϕ))
+    X      = rfft(x_pad, 1)
 
+    f_range = (0:size(X,1)-1)*fs/n_dft
+    for k in 1:n_sources
+        fk_begin    = view(f_begin, k)
+        fk_end      = view(f_end, k)
+        mask        = @. !(fk_begin ≤ f_range < fk_end)
+        X[mask, k] .= zero(eltype(X))
+        bw_gain     = length(mask) / (length(mask)-sum(mask))
+        signal_pow  = bw_gain*10^(snr[k]/10)*noise_pow
+        X[.!mask,k] *= sqrt(signal_pow)
+    end
+    x_pad = irfft(X, n_dft, 1)
+    like  = WidebandIsoIsoLikelihood(n_dft, filter, Δx, c, fs)
+    y     = rand(rng, like, x_pad, ϕ; sigma=sqrt(noise_pow))
+
+    if visualize
+        Plots.plot() |> display
+        for k in 1:n_sources
+            Xk = X[:,k]
+            Plots.plot!((@. DSP.amp2db(max(abs(Xk/sqrt(n_dft)), 1e-10))), ylims=[-10,Inf]) |> display
+        end
+        signal_pow_emp = var(x_pad, dims=1)[1,:]
+        @info(
+            "",
+            empirical_signal_power = signal_pow_emp,
+            empirical_snr          = 10*log10.(signal_pow_emp/noise_pow)
+        )
+    end
+    y[1:n_samples,:], x_pad[1:n_samples,:]
+end
+
+function construct_default_model(
+    n_samples::Int,
+    fs       ::Real;
+    M        ::Int            = 20,
+    spacing  ::Real           = 0.5,
+    Δx       ::AbstractVector = range(0, M*spacing; length=M),
+    c        ::Real           = 1500.,
+)
+    filter = WidebandDoA.WindowedSinc(n_samples)
+
+    #source_prior = InverseGamma(0.1, 0.1)
+    source_prior = LogNormal(5.3, 2.3)
     order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
-    model       = WidebandDoA.WidebandIsoIsoModel(
-        N, Δx, c, fs, source_prior;
+    WidebandDoA.WidebandIsoIsoModel(
+        n_samples,
+        Δx,
+        c,
+        fs,
+        source_prior;
         order_prior,
         delay_filter=filter
     )
-
-    params = rand(rng, model.prior; k=length(ϕ), sigma=σ, phi=ϕ, lambda=λ)
-    y      = rand(rng, model.likelihood, model.prior, params.sourcesignals, ϕ; sigma=σ)
-    model  = WidebandDoA.WidebandConditioned(model, y)
-    model, params
 end
 
 function run_bootstrap(
