@@ -152,7 +152,7 @@ function likeratiotest(
             rate_upsample,
         )
 
-        if !isfinite(dml_loglikelihood(θ_alt, R, f_range, conf))
+        if !isfinite(dml_loglikelihood(θ_alt, R, n_snapshots, f_range, conf))
             break
         end
 

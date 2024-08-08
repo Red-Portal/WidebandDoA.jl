@@ -85,6 +85,7 @@ function coarse_optimization(g₂::AbstractVector, n_targets::Int)
     P       = length(g₂)
     t       = (2*(1:P) .- 1) / (2*P)
     n_crit  = Peaks.argmaxima(g₂)
+
     t_crit  = t[n_crit]
     g₂_crit = g₂[n_crit]
 
@@ -115,9 +116,10 @@ function fine_optimization(t_coarse::AbstractVector,
     for i = 1:n_targets
         for _ = 1:3
             s′tᵢ  = eval_chebyschev_s′(t_opt[i], g₂, t, w)
-            s′′tᵢ = eval_chebyschev_s′′(t_opt[i], g₂, t, w)
-
-            t_opt[i] -= s′tᵢ / s′′tᵢ
+            if abs(s′tᵢ) > eps(Float64)
+                s′′tᵢ = eval_chebyschev_s′′(t_opt[i], g₂, t, w)
+                t_opt[i] -= s′tᵢ / s′′tᵢ
+            end
         end
     end
     t_opt

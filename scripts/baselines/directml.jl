@@ -121,7 +121,6 @@ function dml_alternating_maximization(
             )
             θ[k] = only(θk′)
         end
-
         loglike[t] = dml_loglikelihood(θ, R, n_snapshots, f_range, conf)
     end
 

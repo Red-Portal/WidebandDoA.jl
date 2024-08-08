@@ -6,6 +6,7 @@ using Peaks
 using Plots
 using SpecialFunctions
 using StatsFuns
+using Tullio
 
 import StatsBase
 
