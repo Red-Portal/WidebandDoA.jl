@@ -24,8 +24,12 @@ function snapshot_covariance(
     X_ch   = map(eachcol(x)) do x_ch
         DSP.stft(x_ch, l_snap, 0; nfft=n_fft)
     end
-    X      = cat(X_ch..., dims=3)
-    @tullio Σ[i,j,n] := X[n,k,i]*conj(X[n,k,j])/size(X,2)
+    # X ∈ C^{ bins × snapshot × channel }
+    X = cat(X_ch..., dims=3)
+
+    # X ∈ C^{ snapshot × channel × bins }
+    X = permutedims(X, (2, 3, 1))
+    @tullio Σ[i,j,n] := X[k,i,n]*conj(X[k,j,n])/size(X,2)
 
     Δf      = fs / n_fft
     f_range = (0:size(Σ,3)-1)*Δf
