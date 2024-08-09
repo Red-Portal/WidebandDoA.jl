@@ -48,8 +48,9 @@ function loglikelihood(
         Δn = τ*fs
         H  = array_delay(delay_filter, Δn)
 
-        Tullio.@tullio HᴴH[n,j,k]     := conj(H[n,m,j]) * H[n,m,k]
-        Tullio.@tullio Λ⁻¹pHᴴH[n,j,k] := (j == k) ? HᴴH[n,j,k] + 1/λ[k] : HᴴH[n,j,k]
+        Tullio.@tullio HᴴH[n,j,k] := conj(H[n,m,j]) * H[n,m,k]
+
+        Tullio.@tullio Λ⁻¹pHᴴH[n,j,k] := HᴴH[n,j,k] + ((j == k) ? 1/λ[k] : 0)
 
         D, L = ldl_striped_matrix!(Λ⁻¹pHᴴH)
 
@@ -61,10 +62,10 @@ function loglikelihood(
         Tullio.@tullio ℓdetΛ := N*log(λ[i])
         ℓdetP⊥ = ℓdetΛ + ℓdetΛ⁻¹pHᴴH
 
-        Tullio.@tullio Hᴴy[n,k]  := conj(H[n,m,k]) * y_fft[n,m]
+        Tullio.@tullio Hᴴy[n,k] := conj(H[n,m,k]) * y_fft[n,m]
 
         L⁻¹Hᴴy            = trsv_striped_matrix!(L, Hᴴy)
-        @tullio yᴴImP⊥y := abs(L⁻¹Hᴴy[n,i]/D[n,i]*conj(L⁻¹Hᴴy[n,i]))
+        @tullio yᴴImP⊥y := real(L⁻¹Hᴴy[n,i]/D[n,i]*conj(L⁻¹Hᴴy[n,i]))
         yᴴP⊥y            = y_power - yᴴImP⊥y
 
         if yᴴP⊥y ≤ eps(eltype(data.y))

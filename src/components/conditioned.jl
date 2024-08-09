@@ -21,8 +21,8 @@ function WidebandConditioned(
     model::AbstractWidebandModel,
     y    ::AbstractMatrix{<:Real},
 )
-    Y    = fft(y, 1) / sqrt(size(y, 1))
-    P    = sum(abs2, y)
-    data = WidebandData(y, Y, P)
+    Y     = fft(y, 1) / sqrt(size(y, 1))
+    P     = sum(abs2, y)
+    data  = WidebandData(y, Y, P)
     WidebandConditioned{typeof(model), typeof(data)}(model, data)
 end
