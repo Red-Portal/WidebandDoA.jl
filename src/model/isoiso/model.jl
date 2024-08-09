@@ -13,24 +13,25 @@ struct WidebandIsoIsoParam{T <: Real}
 end
 
 function WidebandIsoIsoModel(
-    n_snapshots ::Int,
+    n_samples   ::Int,
     Δx          ::AbstractVector,
     c           ::Real,
     fs          ::Real,
     source_prior::UnivariateDistribution,
     α           ::Real = 0,
     β           ::Real = 0;
-    delay_filter::AbstractDelayFilter  = WindowedSinc(size(y,1)),
     order_prior ::DiscreteDistribution = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
 )
+    delay_filter = WindowedSinc(n_samples)
+
     prior = WidebandIsoSourcePrior(
-        n_snapshots,
+        n_samples,
         α, β,
         order_prior,
         source_prior
     )
     likelihood = WidebandIsoIsoLikelihood(
-        n_snapshots,
+        n_samples,
         delay_filter,
         Δx, c, fs,
     )

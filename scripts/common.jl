@@ -87,8 +87,6 @@ function construct_default_model(
     Δx       ::AbstractVector = range(0, M*spacing; length=M),
     c        ::Real           = 1500.,
 )
-    filter = WidebandDoA.WindowedSinc(n_samples)
-
     #source_prior = InverseGamma(0.1, 0.1)
     source_prior = LogNormal(5.3, 2.3)
     order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
@@ -98,17 +96,17 @@ function construct_default_model(
         c,
         fs,
         source_prior;
-        order_prior,
-        delay_filter=filter
+        order_prior
     )
 end
 
 function run_bootstrap(
     data′;
+    stat              = mean,
     sampling_strategy = BalancedSampling(1024),
-    confint_strategy  = PercentileConfInt(0.8),
+    confint_strategy  = BCaConfInt(0.95),
 )
-    boot = bootstrap(mean, data′, sampling_strategy)
+    boot = bootstrap(stat, data′, sampling_strategy)
     μ, μ_hi, μ_lo = confint(boot, confint_strategy) |> only
     (μ, μ_hi - μ, μ_lo - μ)
 end
@@ -120,30 +118,24 @@ function reduce_namedtuples(f, vector_of_tuples)
     NamedTuple(k => f(v) for (k,v) in pairs(tuple_of_vectors))
 end
 
-# function sample_bandlimited_signals(
-#     rng    ::Random.AbstractRNG,
-#     prior  ::WidebandDoA.WidebandNormalGammaPrior,
-#     params ::NamedTuple,
-#     f_begin::Real,
-#     f_end  ::Real,
-# )
-#     @unpack n_snapshots, order_prior, c, Δx, fs, delay_filter = prior
-#     @unpack k, phi, lambda, sigma = params
-    
-#     N        = n_snapshots
-#     ϕ, λ, σ  = phi, lambda, sigma
-#     k        = length(ϕ)
+function modelposterior_naive(stats)
+    k_post = [stat.order for stat in stats]
+    k_max  = maximum(k_post)
+    sup    = 0:k_max+1
+    counts = Dict{Int,Int}()
 
-#     bpf = DSP.Filters.digitalfilter(
-#         DSP.Filters.Bandpass(f_begin, f_end, fs=fs), 
-#         DSP.Filters.Butterworth(8)
-#     )
-#     z_a  = randn(rng, 4*N, k)
-#     gain = sqrt((fs/2)/(f_end - f_begin))
-#     a    = mapreduce(hcat, zip(λ, eachcol(z_a))) do (λj, z_aj)
-#         aj = gain*sqrt(λj)*z_aj
-#         reshape(DSP.Filters.filt(bpf, aj)[end-N+1:end], (:,1))
-#     end
-#     y = WidebandDoA.simulate_propagation(rng, prior, params, a)
-#     y, a
-# end
+    for k in sup
+        counts[k] = 0
+    end
+
+    for k in k_post
+        counts[k] += 1
+    end
+
+    probs = zeros(length(sup))
+    n     = length(k_post)
+    for k in 0:k_max+1
+        probs[k+1] = counts[k]/n
+    end
+    DiscreteNonParametric(sup, probs)
+end
