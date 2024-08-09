@@ -120,12 +120,12 @@ function dml_sage(
             Rk = zeros(ComplexF64, M, M, J)
 
             # E-step
-            for j in 1:J
+            @inbounds for j in 1:J
                 f        = f_range[j]
                 A[:,:,j] = steering_matrix(θ, f, conf)
             end
 
-            for j in 1:J
+            @inbounds for j in 1:J
                 Aj = view(A, :, :,   j)
                 aj = view(A, :, k:k, j)
                 yj = view(y, :, :, j)
@@ -154,7 +154,7 @@ function dml_sage(
                 visualize=visualize
             ) |> only
 
-            for j in 1:J 
+            @inbounds for j in 1:J 
                 f   = f_range[j]
                 aj  = steering_matrix(θ[k:k], f, conf)[:,1]
                 zkj = view(zk, :, :, j)

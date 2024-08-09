@@ -100,18 +100,19 @@ end
 
 function likeratiotest(
     rng                 ::Random.AbstractRNG,
+    Y,
     R,
     rate_false_detection::Real,
     n_max_targets       ::Int,
     n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap      = 128,
-    n_bootstrap_nest = 128,
-    n_eval_point     = 256,
-    n_am_iterations  = 10,
-    rate_upsample    = 8,
-    visualize        = true,
+    n_bootstrap       = 128,
+    n_bootstrap_nest  = 128,
+    n_eval_point      = 256,
+    n_sage_iterations = 10,
+    rate_upsample     = 8,
+    visualize         = true,
 )
     #=
         P. Chung, J. F. Bohme, C. F. Mecklenbrauker and A. O. Hero, 
@@ -139,17 +140,13 @@ function likeratiotest(
             rate_upsample,
             visualize,
         )
-        θ_alt, _ = dml_alternating_maximization(
-            R,
-            m,
-            n_snapshots,
-            f_range,
-            conf;
-            visualize,
-            θ_init,
-            n_iterations=n_am_iterations,
+        θ_alt, _ = dml_sage(
+            Y, R, m, f_range, conf;
+            n_iters = n_sage_iterations,
+            θ_init  = θ_init,
             n_eval_point,
             rate_upsample,
+            visualize,
         )
 
         if !isfinite(dml_loglikelihood(θ_alt, R, n_snapshots, f_range, conf))

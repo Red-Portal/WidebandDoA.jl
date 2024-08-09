@@ -86,6 +86,10 @@ function coarse_optimization(g₂::AbstractVector, n_targets::Int)
     t       = (2*(1:P) .- 1) / (2*P)
     n_crit  = Peaks.argmaxima(g₂)
 
+    if isempty(n_crit)
+        n_crit = [argmax(g₂)]
+    end
+
     t_crit  = t[n_crit]
     g₂_crit = g₂[n_crit]
 
