@@ -22,7 +22,7 @@ function WidebandIsoIsoModel(
     β           ::Real = 0;
     order_prior ::DiscreteDistribution = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
 )
-    delay_filter = WindowedSinc(n_samples)
+    delay_filter = WindowedSinc(n_samples*2 - 1)
 
     prior = WidebandIsoSourcePrior(
         n_samples,

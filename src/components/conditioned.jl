@@ -4,9 +4,10 @@ struct WidebandData{
     YF <: AbstractMatrix{<:Complex},
     YP <: Real
 }
-    y      ::Y
-    y_fft  ::YF
-    y_power::YP
+    y        ::Y
+    y_fft    ::YF
+    y_fft_pad::YF
+    y_power  ::YP
 end
 
 struct WidebandConditioned{
@@ -21,8 +22,10 @@ function WidebandConditioned(
     model::AbstractWidebandModel,
     y    ::AbstractMatrix{<:Real},
 )
-    Y     = fft(y, 1) / sqrt(size(y, 1))
+    y_pad = vcat(y, zeros(size(y,1)-1, size(y,2)))
+    Y     = fft(y, 1)     / sqrt(size(y, 1))
+    Y_pad = fft(y_pad, 1) / sqrt(size(y_pad, 1))
     P     = sum(abs2, y)
-    data  = WidebandData(y, Y, P)
+    data  = WidebandData(y, Y, Y_pad, P)
     WidebandConditioned{typeof(model), typeof(data)}(model, data)
 end
