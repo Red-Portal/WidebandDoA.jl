@@ -110,8 +110,8 @@ function likeratiotest(
     n_bootstrap       = 128,
     n_bootstrap_nest  = 128,
     n_eval_point      = 256,
-    n_sage_iterations = 10,
-    rate_upsample     = 8,
+    rate_upsample     = 64,
+    n_ml_iterations   = 200,
     visualize         = true,
 )
     #=
@@ -140,9 +140,21 @@ function likeratiotest(
             rate_upsample,
             visualize,
         )
+
+        # θ_alt, _ = dml_alternating_maximization(
+        #     R_,
+        #     length(ϕ),
+        #     size(Y,1),
+        #     f_range,
+        #     conf;
+        #     θ_init       = θ_init,
+        #     n_iterations = n_ml_iterations,
+        #     visualize
+        # )
+
         θ_alt, _ = dml_sage(
             Y, R, m, f_range, conf;
-            n_iters = n_sage_iterations,
+            n_iters = n_ml_iterations,
             θ_init  = θ_init,
             n_eval_point,
             rate_upsample,

@@ -83,12 +83,26 @@ function dml_sage(
     n_sources,
     f_range,
     conf;
-    n_iters      ::Int  = 32,
+    n_iters  ::Int      = 100,
     θ_init              = nothing,
     n_eval_point ::Int  = 256,
-    rate_upsample::Int  = 8,
+    rate_upsample::Int  = 128,
+    tolerance    ::Real = 1e-4,
     visualize    ::Bool = false,
 )
+    #=
+        Space-Alternating Generalized Expectation-Maximization (SAGE)
+        for Deterministic Maximum Likelihood
+
+        Fessler, Jeffrey A., and Alfred O. Hero.
+        "Space-alternating generalized expectation-maximization algorithm."
+        IEEE Transactions on signal processing 42.10 (1994): 2664-2677.
+
+        Chung, Pei Jung, and Johann F. Bohme.
+        "Comparative convergence analysis of EM and SAGE algorithms in DOA estimation."
+        IEEE Transactions on Signal Processing 49.12 (2001): 2940-2949.
+    =## 
+
     K = n_sources
     N = size(y,1)
     M = size(y,2)
@@ -113,7 +127,6 @@ function dml_sage(
     ν  = ones(Float64, J)
 
     loglike = Array{Float64}(undef, n_iters)
-
     for i in 1:n_iters
         for k in 1:n_sources
             zk = zeros(ComplexF64, M, N, J)
@@ -133,7 +146,7 @@ function dml_sage(
 
                 zk[:,:,j] = aj*sj[k:k,:] + (transpose(yj) - Aj*sj)
 
-                zkj = view(zk, :, : , j)
+                zkj = view(zk, :, :, j)
                 Rk[:,:,j] = zkj*zkj'/M
             end
 
@@ -151,7 +164,7 @@ function dml_sage(
                 1, 
                 n_eval_point, 
                 rate_upsample; 
-                visualize=visualize
+                visualize=false,
             ) |> only
 
             @inbounds for j in 1:J 
@@ -165,66 +178,14 @@ function dml_sage(
             end
         end
         loglike[i] = dml_loglikelihood(θ, R, N, f_range, conf)
-    end
 
-    if visualize
-        Plots.plot(loglike) |> display
-    end
-
-    θ, last(loglike)
-end
-
-function dml_alternating_maximization(
-    R,
-    n_sources    ::Int,
-    n_snapshots  ::Int,
-    f_range      ::AbstractVector,
-    conf         ::ArrayConfig;
-    θ_init              = nothing,
-    n_iterations ::Int  = 10,
-    n_eval_point ::Int  = 256,
-    rate_upsample::Int  = 8,
-    visualize    ::Bool = false
-)
-    θ = if isnothing(θ_init)
-        dml_greedy_optimize(
-            n_sources, R, n_snapshots, f_range, conf;
-            n_eval_point, rate_upsample, visualize
-        )
-    else
-        θ_init
-    end
-    loglike = zeros(n_iterations)
-
-    for t in 1:n_iterations
-        for k in 1:n_sources
-            function objective(θk)
-                θ[k] = θk
-                dml_loglikelihood(
-                    θ,
-                    R, 
-                    n_snapshots,
-                    f_range,
-                    conf
-                )
-            end
-
-            θk′ = barycentric_linesearch(
-                θ_range -> map(objective, θ_range),
-                1,
-                n_eval_point,
-                rate_upsample;
-                visualize=visualize
-            )
-            θ[k] = only(θk′)
+        if i > 1 && abs(loglike[i] - loglike[i-1]) < tolerance
+            return θ, loglike[i]
         end
-        loglike[t] = dml_loglikelihood(θ, R, n_snapshots, f_range, conf)
-    end
 
-    if visualize
-        Plots.plot(1:n_iterations, loglike) |> display
+        if visualize
+            Plots.plot(loglike[1:i]) |> display
+        end
     end
-
     θ, last(loglike)
 end
-    
