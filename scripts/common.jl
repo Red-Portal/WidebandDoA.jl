@@ -76,7 +76,8 @@ function simulate_signal(
             empirical_snr          = 10*log10.(signal_pow_emp/noise_pow)
         )
     end
-    y[1:n_samples,:], x_pad[1:n_samples,:]
+    n_pad = div(n_dft - n_samples, 2)
+    y[n_pad+1:n_pad+n_samples,:], x_pad[n_pad+1:n_pad+n_samples,:]
 end
 
 function construct_default_model(
@@ -86,17 +87,21 @@ function construct_default_model(
     spacing  ::Real           = 0.5,
     Δx       ::AbstractVector = range(0, M*spacing; length=M),
     c        ::Real           = 1500.,
+    alpha    ::Real           = 0.0, 
+    beta     ::Real           = 0.0, 
 )
-    #source_prior = InverseGamma(0.1, 0.1)
-    source_prior = LogNormal(5.3, 2.3)
+    source_prior = InverseGamma(0.01, 0.01)
+    #source_prior = LogNormal(5.3, 2.3)
     order_prior = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
     WidebandDoA.WidebandIsoIsoModel(
         n_samples,
         Δx,
         c,
         fs,
-        source_prior;
-        order_prior
+        source_prior,
+        alpha,
+        beta;
+        order_prior,
     )
 end
 
