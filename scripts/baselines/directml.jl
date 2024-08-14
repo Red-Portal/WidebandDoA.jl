@@ -180,7 +180,7 @@ function dml_sage(
         loglike[i] = dml_loglikelihood(θ, R, N, f_range, conf)
 
         if i > 1 && abs(loglike[i] - loglike[i-1]) < tolerance
-            return θ, loglike[i]
+           return θ, loglike[i]
         end
 
         if visualize

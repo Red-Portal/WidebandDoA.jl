@@ -141,17 +141,6 @@ function likeratiotest(
             visualize,
         )
 
-        # θ_alt, _ = dml_alternating_maximization(
-        #     R_,
-        #     length(ϕ),
-        #     size(Y,1),
-        #     f_range,
-        #     conf;
-        #     θ_init       = θ_init,
-        #     n_iterations = n_ml_iterations,
-        #     visualize
-        # )
-
         θ_alt, _ = dml_sage(
             Y, R, m, f_range, conf;
             n_iters = n_ml_iterations,
