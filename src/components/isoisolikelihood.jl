@@ -4,7 +4,8 @@ struct WidebandIsoIsoLikelihood{
     AO <: AbstractVector,
     F  <: Real
 } <: AbstractWidebandLikelihood
-    n_snapshots ::Int
+    n_samples   ::Int
+    n_fft       ::Int
     delay_filter::DF
     Δx          ::AO
     c           ::F
@@ -17,9 +18,9 @@ function loglikelihood(
     data      ::WidebandData,
     params,
 )
-    @unpack y_fft, y_fft_pad, y_power = data
-    @unpack delay_filter, Δx, c,  fs  = likelihood
-    @unpack alpha, beta,              = prior
+    @unpack y_fft, y_power = data
+    @unpack n_fft, n_samples, delay_filter, Δx, c, fs = likelihood
+    @unpack alpha, beta = prior
 
     ϕ = [param.phi            for param in params]
     λ = [exp(param.loglambda) for param in params]
@@ -37,10 +38,9 @@ function loglikelihood(
     # det(P⊥) = det(H†ΛH + I) = det(Λ) det(Λ⁻¹ + H†H)
     #
 
-    N     = size(y_fft, 1)
-    N_pad = size(y_fft_pad, 1)
-    M     = size(y_fft, 2)
-    K     = length(ϕ)
+    N = n_samples
+    M = size(y_fft, 2)
+    K = length(ϕ)
 
     if K == 0
         -(N*M/2 + beta)*log(alpha/2 + y_power)
@@ -60,10 +60,10 @@ function loglikelihood(
             return -Inf
         end
 
-        Tullio.@tullio ℓdetΛ := N_pad*log(λ[i])
+        Tullio.@tullio ℓdetΛ := n_fft*log(λ[i])
         ℓdetP⊥ = ℓdetΛ + ℓdetΛ⁻¹pHᴴH
 
-        Tullio.@tullio Hᴴy[n,k] := conj(H[n,m,k]) * y_fft_pad[n,m]
+        Tullio.@tullio Hᴴy[n,k] := conj(H[n,m,k]) * y_fft[n,m]
 
         L⁻¹Hᴴy            = trsv_striped_matrix!(L, Hᴴy)
         @tullio yᴴImP⊥y := real(L⁻¹Hᴴy[n,i]/D[n,i]*conj(L⁻¹Hᴴy[n,i]))
@@ -120,9 +120,9 @@ function Base.rand(
     prior     ::Union{<:AbstractWidebandPrior,Nothing} = nothing,
     sigma     ::Real = rand(rng, InverseGamma(prior.alpha, prior.beta)),
 )
-    @unpack n_snapshots, delay_filter, Δx, c, fs = likelihood
+    @unpack n_samples, delay_filter, Δx, c, fs = likelihood
 
-    N, M = n_snapshots, length(Δx)
+    N, M = n_samples, length(Δx)
     ϕ, σ = phi, sigma
 
     z_ϵ = randn(rng, N, M)
@@ -134,5 +134,5 @@ function Base.rand(
     X  = fft(x, 1)
     Tullio.@tullio HX[n,m] := H[n,m,k] * X[n,k]
     Hx = ifft(HX, 1)
-    real.(Hx) + σ*z_ϵ
+    real.(Hx)[1:N,:] + σ*z_ϵ
 end

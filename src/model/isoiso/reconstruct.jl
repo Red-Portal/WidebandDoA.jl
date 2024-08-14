@@ -4,9 +4,9 @@ function reconstruct(
     params::AbstractVector{<:WidebandIsoIsoParam},
 )
     @unpack model, data = cond
-    @unpack y, y_fft, y_fft_pad, y_power = data
+    @unpack y, y_fft, y_power = data
     @unpack prior, likelihood = model
-    @unpack delay_filter, Δx, c, fs = likelihood
+    @unpack n_fft, n_samples, delay_filter, Δx, c, fs = likelihood
     @unpack alpha, beta, order_prior = prior
 
     # Σ_post  = (W⁻¹ + HᴴH)⁻¹
@@ -20,27 +20,21 @@ function reconstruct(
     ϕ = [θj.phi            for θj in params]
     λ = [exp(θj.loglambda) for θj in params]
 
-    N     = size(y_fft,1)
-
-    #N_pad = N
-    #y_fft_pad = y_fft
-    #delay_filter = WindowedSinc(N)
-
-    N_pad = size(y_fft_pad,1)
-    M     = size(y_fft,2)
+    N = size(y_fft,1)
+    M = size(y_fft,2)
 
     τ   = inter_sensor_delay(ϕ, Δx, c)
     H_S = array_delay(delay_filter, τ*fs)
 
     Tullio.@tullio HᴴH_S[n,j,k]     := conj(H_S[n,m,j]) * H_S[n,m,k]
     Tullio.@tullio W⁻¹pHᴴH_S[n,j,k] := (j == k) ? HᴴH_S[n,j,k] + 1/λ[k] : HᴴH_S[n,j,k]
-    Tullio.@tullio Hᴴy_S[n,k]       := conj(H_S[n,m,k]) * y_fft_pad[n,m]
+    Tullio.@tullio Hᴴy_S[n,k]       := conj(H_S[n,m,k]) * y_fft[n,m]
 
     Σ_post_S, _ = WidebandDoA.inv_hermitian_striped_matrix!(W⁻¹pHᴴH_S)
 
     Tullio.@tullio threads=false μ_post_S[n,k] := Σ_post_S[n,k,j] * Hᴴy_S[n,j]
 
-    Φk, Φk⁻¹    = block_fft(k, N_pad)
+    Φk, Φk⁻¹    = block_fft(k, n_fft)
     Σ_post_S_R  = rformat(Σ_post_S)
     Σ_post      = PDMats.PDMat(
         Hermitian(
@@ -48,7 +42,7 @@ function reconstruct(
         )
     )
     Hᴴy    = real.(ifft(Hᴴy_S,1))
-    μ_post = reshape(real.(ifft(μ_post_S,1))*sqrt(N_pad), :)
+    μ_post = reshape(real.(ifft(μ_post_S,1))*sqrt(n_fft), :)
     α_post = alpha + N*M/2
     β_post = beta + (sum(abs2,y) - dot(Hᴴy,μ_post))/2
 

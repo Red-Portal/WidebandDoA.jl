@@ -20,19 +20,20 @@ function WidebandIsoIsoModel(
     source_prior::UnivariateDistribution,
     α           ::Real = 0,
     β           ::Real = 0;
-    order_prior ::DiscreteDistribution = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))
+    order_prior ::DiscreteDistribution = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)),
+    n_fft       ::Int  = n_samples*2 - 1,
 )
-    delay_filter = WindowedSinc(n_samples*2 - 1)
-    #delay_filter = WindowedSinc(n_samples)
-
+    delay_filter = WindowedSinc(n_fft)
     prior = WidebandIsoSourcePrior(
         n_samples,
+        n_fft,
         α, β,
         order_prior,
         source_prior
     )
     likelihood = WidebandIsoIsoLikelihood(
         n_samples,
+        n_fft,
         delay_filter,
         Δx, c, fs,
     )

@@ -27,7 +27,12 @@ end
     order_prior  = Poisson(2)
 
     model = WidebandIsoIsoModel(
-        n_snapshots, Δx, c, fs, InverseGamma(α, β), α, β; delay_filter, order_prior
+        n_snapshots,
+        Δx, c, fs,
+        InverseGamma(α, β),
+        α, β;
+        order_prior,
+        n_fft = n_snapshots,
     )
 
     prop  = UniformNormalLocalProposal(0.0, 1.0)

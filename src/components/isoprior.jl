@@ -4,7 +4,8 @@ struct WidebandIsoSourcePrior{
     OP <: DiscreteDistribution,
     SP <: UnivariateDistribution,
 } <: AbstractWidebandPrior
-    n_snapshots ::Int
+    n_samples   ::Int
+    n_fft       ::Int
     alpha       ::F
     beta        ::F
     order_prior ::OP
@@ -43,8 +44,8 @@ function Base.rand(
     phi   ::AbstractVector = rand(rng, Uniform(-π/2, π/2), k),
     lambda::AbstractVector = rand(rng, prior.source_prior, k)
 )
-    @unpack n_snapshots, alpha, beta, order_prior, source_prior = prior
-    z_x = randn(rng, n_snapshots, k)
+    @unpack n_samples, n_fft, alpha, beta, order_prior, source_prior = prior
+    z_x = randn(rng, n_fft, k)
     Tullio.@tullio x[n,k] := sqrt(lambda[k])*sigma*z_x[n,k]
     (k=k, phi=phi, lambda=lambda, sigma=sigma, sourcesignals=x)
 end

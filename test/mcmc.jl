@@ -19,13 +19,17 @@ end
     Δx           = range(0, n_sensors*0.5; length=n_sensors)
     c            = 1500
     fs           = 1000
-    delay_filter = WindowedSinc(n_snapshots)
     α, β         = 5.0, 2.0
     α_λ, β_λ     = 5.0, 2.0
     order_prior  = Dirac(1)
 
     model = WidebandIsoIsoModel(
-        n_snapshots, Δx, c, fs, InverseGamma(α, β), α, β; delay_filter, order_prior
+        n_snapshots,
+        Δx, c, fs,
+        InverseGamma(α, β),
+        α, β;
+        order_prior,
+        n_fft = n_snapshots
     )
 
     @testset for mcmc in [
