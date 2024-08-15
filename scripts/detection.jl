@@ -141,7 +141,7 @@ function main()
             JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
-    elseif ENV["TASK"] == "narrowband_snr"
+    elseif ENV["TASK"] == "narrowband"
         for k in [2, 4, 6]
             name  = "detection_narrowband_k=$(k)_varying_snr.jld2"
             setup = (
@@ -165,7 +165,7 @@ function main()
             JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
-    elseif ENV["TASK"] == "Mixedband"
+    elseif ENV["TASK"] == "mixedband"
         for k in [2, 4, 6], n_snap in 2:2:12
             name  = "detection_mixedband_k=$(k)_varying_snr.jld2"
             setup = (
@@ -190,7 +190,7 @@ function main()
             JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
-    elseif ENV["TASK"] == "SeparationUnequal"
+    elseif ENV["TASK"] == "separationunequal"
         name  = "detection_unequal_power_varying_separation.jld2"
         setup = (
             n_bins   = 32,
