@@ -1,7 +1,7 @@
 
 using AbstractMCMC
 using Base.Iterators
-using DataFrames
+using DataFrames, DataFramesMeta
 using Distributions
 using Distributed
 using Random, Random123
@@ -115,11 +115,11 @@ function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 end
 
 function main()
-    for k in [2, 4, 6, 8]
-        name  = "wideband_k=$(k)_varying_snr.jld2"
+    for k in [2, 4, 6], n_snap in [2, 4, 8]
+        name  = "detection_wideband_k=$(k)_nsnap=$(n_snap)_varying_snr.jld2"
         setup = (
             n_bins  = 32,
-            n_snap  = 4,
+            n_snap  = n_snap,
             ϕ       = range(-2/6*π, 2/6*π; length=k),
             f_begin = 10.0,
             f_end   = 1000.0,
@@ -139,11 +139,11 @@ function main()
         JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
 
-    for k in [2, 4, 6, 8]
-        name  = "narrowband_k=$(k)_varying_snr.jld2"
+    for k in [2, 4, 6], n_snap in [2, 4, 8]
+        name  = "detection_narrowband_k=$(k)_nsnap=$(n_snap)_varying_snr.jld2"
         setup = (
             n_bins  = 32,
-            n_snap  = 4,
+            n_snap  = n_snap,
             ϕ       = range(-2/6*π, 2/6*π; length=k),
             f_begin = 400.0,
             f_end   = 500.0,
@@ -163,14 +163,14 @@ function main()
         JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
 
-    for k in [2, 4, 6, 8]
-        name  = "mixedband_k=$(k)_varying_snr.jld2"
+    for k in [2, 4, 6], n_snap in [2, 4, 8]
+        name  = "detection_mixedband_k=$(k)_nsnap=$(n_snap)_varying_snr.jld2"
         setup = (
             n_bins  = 32,
-            n_snap  = 4,
+            n_snap  = n_snap,
             ϕ       = range(-2/6*π, 2/6*π; length=k),
-            f_begin = vcat(fill(400.0, k÷2), fill(k÷2,   10.0)),
-            f_end   = vcat(fill(500.0, k÷2), fill(k÷2, 1000.0)),
+            f_begin = vcat(fill(400.0, k÷2), fill(  10.0, k÷2)),
+            f_end   = vcat(fill(500.0, k÷2), fill(1000.0, k÷2)),
             fs      = 3000.0,
         )
         @info(name, setup...)
@@ -187,9 +187,8 @@ function main()
         JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
 
-    begin
-        k     = 4
-        name  = "equalsignals_varying_snapshots.jld2"
+    for k in [2, 4, 6]
+        name  = "detection_equalsignals_k=$(k)_varying_snapshots.jld2"
         setup = (
             n_bins  = 32,
             k       = k,
@@ -213,11 +212,11 @@ function main()
         JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
 
-    begin
-        name  = "unequal_power_varying_separation.jld2"
+    for n_snap in [2, 4, 8]
+        name  = "detection_unequal_power_nsnap=$(n_snap)_varying_separation.jld2"
         setup = (
             n_bins   = 32,
-            n_snap   = 8,
+            n_snap   = n_snap,
             k        = 2,
             base_snr = 0.0,
             f_begin  = [100.0, 100.0,],
@@ -244,4 +243,33 @@ function main()
         end
         JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
+end
+
+function statistics(df, group_key, statistic)
+    upper_conf(tup) = tup[1] + tup[2]
+    lower_conf(tup) = tup[1] + tup[3]
+
+    df = @chain groupby(df, group_key) begin
+        @combine($"$(statistic)_boot" = run_bootstrap($statistic),)
+        @transform(
+            $"$(statistic)_mean"  = first.($"$(statistic)_boot"),
+            $"$(statistic)_lower" = upper_conf.($"$(statistic)_boot"),
+            $"$(statistic)_upper" = lower_conf.($"$(statistic)_boot"),
+        )
+        @orderby($group_key)
+    end
+end
+
+function process_data()
+    k    = 6
+    name = "detection_narrowband_k=$(k)_varying_snr.jld2"
+
+    df, setup = JLD2.load(datadir("raw", name), "data", "setup")
+    @info("setup", setup...)
+
+    df_rjmcmc    = statistics(@subset(df, :method .== Symbol("rjmcmc")),    :snr, :l1)
+    df_likeratio = statistics(@subset(df, :method .== Symbol("likeratio")), :snr, :l1)
+
+    Plots.plot(    df_rjmcmc.snr,    df_rjmcmc.l1_mean, ribbon=(   abs.(df_rjmcmc.l1_lower - df_rjmcmc.l1_mean),       df_rjmcmc.l1_upper - df_rjmcmc.l1_mean))
+    Plots.plot!(df_likeratio.snr, df_likeratio.l1_mean, ribbon=(abs.(df_likeratio.l1_lower - df_likeratio.l1_mean), df_likeratio.l1_upper - df_likeratio.l1_mean))
 end
