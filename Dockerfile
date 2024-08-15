@@ -1,4 +1,4 @@
-FROM julia/1.10.4-bookworm
+FROM julia:1.10.4-bookworm
 
 ENV USER widebanddoa
 ENV USER_HOME_DIR /home/${USER}
