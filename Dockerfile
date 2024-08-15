@@ -21,7 +21,6 @@ RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.add(url=\"https://github.
 ADD src     ${USER_HOME_DIR}/src
 ADD scripts ${USER_HOME_DIR}/scripts
 
-
 RUN chmod -R a+rwX ${USER_HOME_DIR}
 
 USER ${USER}
@@ -29,4 +28,4 @@ USER ${USER}
 # configure the script entry point
 WORKDIR ${USER_HOME_DIR}
 
-ENTRYPOINT ["julia", "-p", "20", "-e", "@everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
+ENTRYPOINT ["julia", "-p", "20", "-e", "using Pkg; Pkg.activate(\"scripts\"); include(\"scripts/detection.jl\");  @everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
