@@ -18,9 +18,8 @@ ADD *.toml ${USER_HOME_DIR}/
 
 RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
  
-ADD src           ${USER_HOME_DIR}/src
-ADD data/datasets ${USER_HOME_DIR}/data/datasets
-ADD scripts       ${USER_HOME_DIR}/scripts
+ADD src     ${USER_HOME_DIR}/src
+ADD scripts ${USER_HOME_DIR}/scripts
 
 
 RUN chmod -R a+rwX ${USER_HOME_DIR}
