@@ -1,11 +1,4 @@
-FROM nvidia/cuda:11.1.1-cudnn8-devel-ubuntu20.04
-
-RUN apt-get update && apt-get install -y --no-install-recommends wget
-
-FROM julia:latest
-
-ARG JULIA_RELEASE=1.10
-ARG JULIA_VERSION=1.10.4
+FROM julia/1.10.4-bookworm
 
 ENV USER widebanddoa
 ENV USER_HOME_DIR /home/${USER}
