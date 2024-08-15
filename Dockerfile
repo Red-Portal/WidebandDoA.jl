@@ -29,4 +29,4 @@ USER ${USER}
 # configure the script entry point
 WORKDIR ${USER_HOME_DIR}
 
-ENTRYPOINT ["julia", "-p", "20", "-e", "@everywhere using Pkg; @everywhere Pkg.activate("scripts"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
+ENTRYPOINT ["julia", "-p", "20", "-e", "@everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
