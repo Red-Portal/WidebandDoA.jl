@@ -16,7 +16,7 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 # add this entire repository to the docker image
 ADD *.toml ${USER_HOME_DIR}/
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.add(\"https:\/\/github.com\/Red-Portal\/ReversibleJump.jl\"); Pkg.activate(\".\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.add(\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.activate(\".\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
  
 ADD src           ${USER_HOME_DIR}/src
 ADD data/datasets ${USER_HOME_DIR}/data/datasets
