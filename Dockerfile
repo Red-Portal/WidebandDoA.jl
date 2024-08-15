@@ -22,6 +22,7 @@ ADD src           ${USER_HOME_DIR}/src
 ADD data/datasets ${USER_HOME_DIR}/data/datasets
 ADD scripts       ${USER_HOME_DIR}/scripts
 
+
 RUN chmod -R a+rwX ${USER_HOME_DIR}
 
 USER ${USER}
