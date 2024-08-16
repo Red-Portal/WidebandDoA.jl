@@ -8,27 +8,6 @@ using JLD2
 
 include("common.jl")
 
-function modelposterior_naive(stats)
-    k_post = [stat.order for stat in stats]
-    k_max  = maximum(k_post)
-    sup    = 0:k_max+1
-    counts = Dict{Int,Int}()
-
-    for k in sup
-        counts[k] = 0
-    end
-
-    for k in k_post
-        counts[k] += 1
-    end
-
-    probs = zeros(length(sup))
-    n     = length(k_post)
-    for k in 0:k_max+1
-        probs[k+1] = counts[k]/n
-    end
-    DiscreteNonParametric(sup, probs)
-end
 
 function run_rjmcmc(rng, cond, n_samples, n_burn)
     initial_params = WidebandDoA.WidebandIsoIsoParam{Float64}[]
