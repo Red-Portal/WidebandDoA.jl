@@ -6,17 +6,15 @@ ENV JULIA_DEPOT_PATH ${USER_HOME_DIR}/.julia
 
 RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 
-# add this entire repository to the docker image
-ADD *.toml ${USER_HOME_DIR}/
-
-ADD src     ${USER_HOME_DIR}/src
-ADD scripts ${USER_HOME_DIR}/scripts
-
+# Add unregistered dependencies
+RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA.jl\"); Pkg.develop(\"WidebandDoA\")"
 RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(\"ReversibleJump\")"
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\".\"); Pkg.develop(\"ReversibleJump\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
+# Copy source files
+ADD *.toml ${USER_HOME_DIR}/
+ADD scripts ${USER_HOME_DIR}/scripts
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop(\"ReversibleJump\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop(\"ReversibleJump\"); Pkg.develop(\"WidebandDoA\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
  
 RUN chmod -R a+rwX ${USER_HOME_DIR}
 
@@ -25,4 +23,4 @@ USER ${USER}
 # configure the script entry point
 WORKDIR ${USER_HOME_DIR}
 
-ENTRYPOINT ["julia", "-p", "20", "-e", "using Pkg; Pkg.activate(\"scripts\"); include(\"scripts/detection.jl\");  @everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
+ENTRYPOINT ["julia", "-p", "20", "-e", "@everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
