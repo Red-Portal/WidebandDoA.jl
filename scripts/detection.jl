@@ -133,8 +133,8 @@ function main()
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
+                JLD2.save(datadir("raw", name), "data", df, "setup", setup)
             end
-            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
 
     elseif ENV["TASK"] == "wideband"
         for k in [2, 4, 6]
@@ -158,8 +158,8 @@ function main()
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
+                JLD2.save(datadir("raw", name), "data", df, "setup", setup)
             end
-            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
     elseif ENV["TASK"] == "narrowband"
@@ -184,8 +184,8 @@ function main()
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
+                JLD2.save(datadir("raw", name), "data", df, "setup", setup)
             end
-            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
     elseif ENV["TASK"] == "mixedband"
@@ -210,8 +210,8 @@ function main()
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
+                JLD2.save(datadir("raw", name), "data", df, "setup", setup)
             end
-            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
 
     elseif ENV["TASK"] == "separationunequal"
@@ -243,8 +243,8 @@ function main()
             df′ = vcat(df_rjmcmc, df_likeratio)
             println(df′)
             df = vcat(df, df′)
+            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
         end
-        JLD2.save(datadir("raw", name), "data", df, "setup", setup)
     end
 end
 
