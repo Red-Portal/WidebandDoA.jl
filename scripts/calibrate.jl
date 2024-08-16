@@ -27,10 +27,9 @@ function run_rjmcmc(rng, cond, n_samples, n_burn)
         initial_params;
         show_progress=false,
     )
-    stats     = last(stats, n_samples - n_burn)
-    k_post    = modelposterior_naive(stats)
-    k_post_rb = ReversibleJump.modelposterior(stats, cond.model.prior.order_prior)
-    k_post, k_post_rb
+    stats  = last(stats, n_samples - n_burn)
+    k_post = modelposterior_naive(stats)
+    k_post
 end
 
 function estimate_error(
@@ -50,12 +49,10 @@ function estimate_error(
 	cond  = WidebandConditioned(model, y)
         cond  = @set cond.model.prior.source_prior = source_prior
 
-        k_post, k_post_rb = run_rjmcmc(rng, cond, n_samples, n_burn)   
+        k_post = run_rjmcmc(rng, cond, n_samples, n_burn)   
         (
-            zeroone_naive        = mode(k_post)    != k_true,
-            zeroone_raoblackwell = mode(k_post_rb) != k_true,
-            l1_naive             = abs(median(k_post)    - k_true),
-            l1_raoblackwell      = abs(median(k_post_rb) - k_true),
+            zeroone_naive = mode(k_post)    != k_true,
+            l1_naive      = abs(median(k_post)    - k_true),
         )
     end
     reduce_namedtuples(
@@ -68,17 +65,17 @@ function run_simulation()
     n_burn    = 2^7
     n_reps    = 2^7
 
-    name    = "fullband"
-    ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
-    fs      = 2000.0
-    f_begin = 0.0
-    f_end   = fs/2
-
-    # name    = "bandlimited"
+    # name    = "fullband"
     # ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
     # fs      = 2000.0
-    # f_begin = [200,300,400,500,600]
-    # f_end   = [300,400,500,600,700]
+    # f_begin = 0.0
+    # f_end   = fs/2
+
+    name    = "bandlimited"
+    ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
+    fs      = 2000.0
+    f_begin = [200,300,400,500,600]
+    f_end   = [300,400,500,600,700]
 
     prior = [
         (dist="inversegamma", param1=0.1,   param2=0.1),
@@ -126,17 +123,9 @@ function run_simulation()
             zeroone_naive_lower  = res.zeroone_naive[2],
             zeroone_naive_upper  = res.zeroone_naive[3],
             #
-            zeroone_raoblackwell_mean  = res.zeroone_raoblackwell[1],
-            zeroone_raoblackwell_lower = res.zeroone_raoblackwell[2],
-            zeroone_raoblackwell_upper = res.zeroone_raoblackwell[3],
-            #
             l1_naive_mean   = res.l1_naive[1],
             l1_naive_lower  = res.l1_naive[2],
             l1_naive_upper  = res.l1_naive[3],
-            #
-            l1_raoblackwell_mean  = res.l1_raoblackwell[1],
-            l1_raoblackwell_lower = res.l1_raoblackwell[2],
-            l1_raoblackwell_upper = res.l1_raoblackwell[3],
         )
         display(df)
         df
@@ -152,10 +141,10 @@ function process_data()
     for (distname, param1, param2, dist) in [
         ("lognormal",    1.3,   1.2,  LogNormal(1.3, 1.2)),
         ("lognormal",    5.3,   2.3,  LogNormal(5.3, 2.3)),
-        #("lognormal"   , -0.8,  0.6,  LogNormal(-0.8, 0.6)),
-        #("lognormal"   ,  1.5,  0.6,  LogNormal(1.5, 0.6)),
+        ("lognormal"   , -0.8,  0.6,  LogNormal(-0.8, 0.6)),
+        ("lognormal"   ,  1.5,  0.6,  LogNormal(1.5, 0.6)),
         ("inversegamma",  0.01, 0.01, InverseGamma(0.01, 0.01)),
-        #("inversegamma", 0.001, 0.001, InverseGamma(0.001, 0.001)),
+        ("inversegamma", 0.001, 0.001, InverseGamma(0.001, 0.001)),
         #("uniform"   ,  0.1,  10.0, Uniform(0.1,   10.0)),
         #("uniform"   , 0.01, 100.0, Uniform(0.01, 100.0)),
         #("uniform"   ,  0.5,   5.0, Uniform(0.5,    5.0)),
