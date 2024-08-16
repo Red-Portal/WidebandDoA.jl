@@ -15,9 +15,9 @@ RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA
 ADD *.toml ${USER_HOME_DIR}/
 ADD scripts ${USER_HOME_DIR}/scripts
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\")
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\");
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA.jl\");
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\")"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\");"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA.jl\");"
 
 RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd());"
  
