@@ -9,15 +9,15 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 # add this entire repository to the docker image
 ADD *.toml ${USER_HOME_DIR}/
 
+ADD src     ${USER_HOME_DIR}/src
+ADD scripts ${USER_HOME_DIR}/scripts
+
 RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(\"ReversibleJump\")"
 
 RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\".\"); Pkg.develop(\"ReversibleJump\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
 
 RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop(\"ReversibleJump\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
  
-ADD src     ${USER_HOME_DIR}/src
-ADD scripts ${USER_HOME_DIR}/scripts
-
 RUN chmod -R a+rwX ${USER_HOME_DIR}
 
 USER ${USER}
