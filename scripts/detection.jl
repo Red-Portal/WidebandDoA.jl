@@ -115,7 +115,28 @@ function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 end
 
 function main()
-    if ENV["TASK"] == "wideband"
+    if ENV["TASK"] == "null"
+            name  = "detection_null.jld2"
+            setup = (
+                n_bins = 32,
+                fs     = 3000.0,
+            )
+            @info(name, setup...)
+            df = DataFrame()
+            for snr in -14.:1.:10, n_snap in 2:2:12
+                df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
+                df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
+                df_rjmcmc[   !, :snr]   .= snr
+                df_likeratio[!, :snr]   .= snr
+                df_rjmcmc[   !, :nsnap] .= n_snap
+                df_likeratio[!, :nsnap] .= n_snap
+                df′ = vcat(df_rjmcmc, df_likeratio)
+                println(df′)
+                df = vcat(df, df′)
+            end
+            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
+
+    elseif ENV["TASK"] == "wideband"
         for k in [2, 4, 6]
             name  = "detection_wideband_k=$(k)_varying_snr.jld2"
             setup = (
@@ -143,7 +164,7 @@ function main()
 
     elseif ENV["TASK"] == "narrowband"
         for k in [2, 4, 6]
-            name  = "detection_narrowband_k=$(k)_varying_snr.jld2"
+            name  = "detection_narrowband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
                 ϕ       = range(-2/6*π, 2/6*π; length=k),
@@ -167,7 +188,7 @@ function main()
 
     elseif ENV["TASK"] == "mixedband"
         for k in [2, 4, 6], n_snap in 2:2:12
-            name  = "detection_mixedband_k=$(k)_varying_snr.jld2"
+            name  = "detection_mixedband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
                 n_snap  = n_snap,
@@ -191,7 +212,7 @@ function main()
         end
 
     elseif ENV["TASK"] == "separationunequal"
-        name  = "detection_unequal_power_varying_separation.jld2"
+        name  = "detection_unequal_power_separation.jld2"
         setup = (
             n_bins   = 32,
             k        = 2,
