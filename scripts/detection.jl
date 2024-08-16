@@ -123,7 +123,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 1:2:16
+            for n_snap in 1:16, snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -148,7 +148,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 1:2:16
+            for n_snap in 1:16, snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -174,7 +174,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 1:2:12
+            for n_snap in 1:16, snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -200,7 +200,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 1:2:16
+            for n_snap in 1:16, snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -226,9 +226,9 @@ function main()
         @info(name, setup...)
         df = DataFrame()
         for snr_diff   in [0, 5, 10],
+            n_snap     in [1, 2, 4, 8],
             base_snr   in -4:4:8,
-            separation in (1:2:20)*π/180,
-            n_snap     in 1:2:16
+            separation in (1:2:20)*π/180
 
             ϕ   = [0.0, separation]
             snr = [base_snr + snr_diff, base_snr]
@@ -263,9 +263,9 @@ function main()
         @info(name, setup...)
         df = DataFrame()
         for snr_diff   in [0, 5, 10],
+            n_snap     in [1, 2, 4, 8],
             base_snr   in -4:4:8,
-            separation in (1:2:20)*π/180,
-            n_snap     in 1:2:16
+            separation in (1:2:20)*π/180
 
             ϕ   = [0.0, separation]
             snr = [base_snr + snr_diff, base_snr]
