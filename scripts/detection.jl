@@ -57,15 +57,15 @@ function estimate_likeratiotest(
     fs    ::Real,
     y     ::AbstractMatrix
 )
-    fdr   = 0.1 
+    fdr   = 0.1
     model = construct_default_model(n_bins*n_snap, fs)
     c     = model.likelihood.c
     Δx    = model.likelihood.Δx
 
     R, y, f_range = snapshot_covariance(y, n_bins, fs, n_snap)
-    R_sel = R[:,:,2:end] 
+    R_sel = R[:,:,2:end]
     y_sel = y[:,:,2:end]
-    f_sel = f_range[2:end] 
+    f_sel = f_range[2:end]
 
     k, _  = likeratiotest(
         rng,
@@ -92,7 +92,7 @@ function simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 end
 
 function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
-    n_reps = 32
+    n_reps = 100
     seed   = (0x97dcb950eaebcfba, 0x741d36b68bef6415)
     k_true = length(ϕ)
 
@@ -123,7 +123,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:16
+            for snr in -14.:1.:10, n_snap in 1:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -138,7 +138,7 @@ function main()
 
     elseif ENV["TASK"] == "wideband"
         for k in [2, 4, 6]
-            name  = "detection_wideband_k=$(k)_varying_snr.jld2"
+            name  = "detection_wideband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
                 ϕ       = range(-2/6*π, 2/6*π; length=k),
@@ -148,7 +148,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:16
+            for snr in -14.:1.:10, n_snap in 1:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -168,13 +168,13 @@ function main()
             setup = (
                 n_bins  = 32,
                 ϕ       = range(-2/6*π, 2/6*π; length=k),
-                f_begin = 400.0,
-                f_end   = 500.0,
+                f_begin = 500.0,
+                f_end   = 600.0,
                 fs      = 3000.0,
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:12
+            for snr in -14.:1.:10, n_snap in 1:2:12
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -194,13 +194,13 @@ function main()
             setup = (
                 n_bins  = 32,
                 ϕ       = range(-2/6*π, 2/6*π; length=k),
-                f_begin = vcat(fill(400.0, k÷2), fill(  10.0, k÷2)),
-                f_end   = vcat(fill(500.0, k÷2), fill(1000.0, k÷2)),
+                f_begin = vcat(fill(500.0, k÷2), fill(  10.0, k÷2)),
+                f_end   = vcat(fill(600.0, k÷2), fill(1000.0, k÷2)),
                 fs      = 3000.0,
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:16
+            for snr in -14.:1.:10, n_snap in 1:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -214,25 +214,67 @@ function main()
             end
         end
 
-    elseif ENV["TASK"] == "separationunequal"
-        name  = "detection_unequal_power_separation.jld2"
+    elseif ENV["TASK"] == "separation_wideband"
+        name  = "detection_separation.jld2"
         setup = (
             n_bins   = 32,
             k        = 2,
-            base_snr = 0.0,
-            f_begin  = [100.0, 100.0,],
-            f_end    = [500.0, 500.0,],
+            f_begin  = [  10.0,   10.0,],
+            f_end    = [1000.0, 1000.0,],
             fs       = 3000.0,
         )
         @info(name, setup...)
         df = DataFrame()
-        for snr_diff in [0, 5, 10], separation in (1:2:20)*π/180, n_snap in 2:2:16
+        for base_snr   in -4:4:8,
+            snr_diff   in [0, 5, 10],
+            separation in (1:2:20)*π/180,
+            n_snap     in 1:2:16
+
             ϕ   = [0.0, separation]
-            snr = [setup.base_snr + snr_diff, setup.base_snr]
-            
+            snr = [base_snr + snr_diff, base_snr]
+
             df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
             df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
 
+            df_rjmcmc[!,    :base_snr]   .= base_snr
+            df_likeratio[!, :base_snr]   .= base_snr
+            df_rjmcmc[!,    :snr_diff]   .= snr_diff
+            df_likeratio[!, :snr_diff]   .= snr_diff
+            df_rjmcmc[!,    :separation] .= separation
+            df_likeratio[!, :separation] .= separation
+            df_rjmcmc[!,    :nsnap]      .= n_snap
+            df_likeratio[!, :nsnap]      .= n_snap
+
+            df′ = vcat(df_rjmcmc, df_likeratio)
+            println(df′)
+            df = vcat(df, df′)
+            JLD2.save(datadir("raw", name), "data", df, "setup", setup)
+        end
+
+    elseif ENV["TASK"] == "separation_narrowband"
+        name  = "detection_separation.jld2"
+        setup = (
+            n_bins   = 32,
+            k        = 2,
+            f_begin  = [500.0, 500.0,],
+            f_end    = [600.0, 600.0,],
+            fs       = 3000.0,
+        )
+        @info(name, setup...)
+        df = DataFrame()
+        for base_snr   in -4:4:8,
+            snr_diff   in [0, 5, 10],
+            separation in (1:2:20)*π/180,
+            n_snap     in 1:2:16
+
+            ϕ   = [0.0, separation]
+            snr = [base_snr + snr_diff, base_snr]
+
+            df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+            df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+
+            df_rjmcmc[!,    :base_snr]   .= base_snr
+            df_likeratio[!, :base_snr]   .= base_snr
             df_rjmcmc[!,    :snr_diff]   .= snr_diff
             df_likeratio[!, :snr_diff]   .= snr_diff
             df_rjmcmc[!,    :separation] .= separation
@@ -264,15 +306,74 @@ function statistics(df, group_key, statistic)
 end
 
 function process_data()
-    k    = 6
-    name = "detection_narrowband_k=$(k)_varying_snr.jld2"
+    k    = 2
+    name = "detection_narrowband_k=$(k).jld2"
 
     df, setup = JLD2.load(datadir("raw", name), "data", "setup")
     @info("setup", setup...)
 
-    df_rjmcmc    = statistics(@subset(df, :method .== Symbol("rjmcmc")),    :snr, :l1)
-    df_likeratio = statistics(@subset(df, :method .== Symbol("likeratio")), :snr, :l1)
+    Plots.plot()
 
-    Plots.plot(    df_rjmcmc.snr,    df_rjmcmc.l1_mean, ribbon=(   abs.(df_rjmcmc.l1_lower - df_rjmcmc.l1_mean),       df_rjmcmc.l1_upper - df_rjmcmc.l1_mean))
-    Plots.plot!(df_likeratio.snr, df_likeratio.l1_mean, ribbon=(abs.(df_likeratio.l1_lower - df_likeratio.l1_mean), df_likeratio.l1_upper - df_likeratio.l1_mean))
+    for nsnap in 8:2:10
+        df_rjmcmc    = statistics(
+            @subset(df, :nsnap .== nsnap, :method .== Symbol("rjmcmc")),  :snr, :l0
+        )
+        df_likeratio = statistics(
+            @subset(df, :nsnap .== nsnap, :method .== Symbol("likeratio")), :snr, :l0
+        )
+
+        Plots.plot!(
+            df_rjmcmc.snr,
+            1 .- df_rjmcmc.l0_mean,
+            #ribbon=(
+            #    @. abs.(df_rjmcmc.l0_lower + (1 - df_rjmcmc.l0_mean)),
+            #    @. df_rjmcmc.l0_upper      + (1 - df_rjmcmc.l0_mean)
+            #),
+            color=:blue
+        )  |> display
+        Plots.plot!(
+            df_likeratio.snr,
+            1 .- df_likeratio.l0_mean,
+            #ribbon=(
+            #    @. abs(df_likeratio.l0_lower + (1 - df_likeratio.l0_mean)),
+            #    @. df_likeratio.l0_upper     + (1 - df_likeratio.l0_mean)
+            #),
+            color=:red
+        ) |> display
+    end
+
+    name = "detection_separation.jld2"
+    df, setup = JLD2.load(datadir("raw", name), "data", "setup")
+    @info("setup", setup...)
+
+    Plots.plot()
+
+    begin
+        nsnap = 8
+        df_rjmcmc    = statistics(
+            @subset(df, :nsnap .== nsnap, :snr_diff .== 0, :method .== Symbol("rjmcmc")), :separation, :l0
+        )
+        df_likeratio = statistics(
+            @subset(df, :nsnap .== nsnap, :snr_diff .== 0, :method .== Symbol("likeratio")), :separation, :l0
+        )
+
+        Plots.plot!(
+            df_rjmcmc.separation*180/π,
+            1 .- df_rjmcmc.l0_mean,
+            #ribbon=(
+            #    @. abs.(df_rjmcmc.l0_lower + (1 - df_rjmcmc.l0_mean)),
+            #    @. df_rjmcmc.l0_upper      + (1 - df_rjmcmc.l0_mean)
+            #),
+            color=:blue
+        )  |> display
+        Plots.plot!(
+            df_likeratio.separation*180/π,
+            1 .- df_likeratio.l0_mean,
+            #ribbon=(
+            #    @. abs(df_likeratio.l0_lower + (1 - df_likeratio.l0_mean)),
+            #    @. df_likeratio.l0_upper     + (1 - df_likeratio.l0_mean)
+            #),
+            color=:red
+        ) |> display
+    end
 end
