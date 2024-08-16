@@ -7,7 +7,7 @@ ENV JULIA_DEPOT_PATH ${USER_HOME_DIR}/.julia
 RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 
 # Add unregistered dependencies
-#RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\"); Pkg.develop(\"mcmcse\")"
+RUN julia -e "using Pkg; Pkg.develop(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/WidebandDoA.jl\") "
 #RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(\"ReversibleJump\")"
 # RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA.jl\"); Pkg.develop(\"WidebandDoA\")"
 
@@ -15,9 +15,7 @@ RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 ADD *.toml ${USER_HOME_DIR}/
 ADD scripts ${USER_HOME_DIR}/scripts
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\")"
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/ReversibleJump.jl\");"
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA.jl\");"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop([\"mcmcse\", \"ReversibleJump\", \"WidebandDoA\"])"
 
 RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd());"
  
