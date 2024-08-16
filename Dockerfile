@@ -15,7 +15,7 @@ RUN julia -e "using Pkg; Pkg.add(url=\"https://github.com/Red-Portal/WidebandDoA
 ADD *.toml ${USER_HOME_DIR}/
 ADD scripts ${USER_HOME_DIR}/scripts
 
-RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop(\"ReversibleJump\"); Pkg.develop(\"WidebandDoA\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
+RUN julia -e "cd(\"${USER_HOME_DIR}\"); using Pkg; Pkg.activate(\"scripts\"); Pkg.develop(\"ReversibleJump\"); Pkg.develop(\"WidebandDoA\"); Pkg.develop(\"mcmcse\"); Pkg.update(); Pkg.precompile(); Pkg.status(); println(pwd())"
  
 RUN chmod -R a+rwX ${USER_HOME_DIR}
 
