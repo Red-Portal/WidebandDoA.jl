@@ -123,7 +123,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:12
+            for snr in -14.:1.:10, n_snap in 2:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -148,7 +148,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:12
+            for snr in -14.:1.:10, n_snap in 2:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -177,8 +177,10 @@ function main()
             for snr in -14.:1.:10, n_snap in 2:2:12
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-                df_rjmcmc[!, :snr]    .= snr
-                df_likeratio[!, :snr] .= snr
+                df_rjmcmc[!,    :snr]   .= snr
+                df_likeratio[!, :snr]   .= snr
+                df_rjmcmc[   !, :nsnap] .= n_snap
+                df_likeratio[!, :nsnap] .= n_snap
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
@@ -187,11 +189,10 @@ function main()
         end
 
     elseif ENV["TASK"] == "mixedband"
-        for k in [2, 4, 6], n_snap in 2:2:12
+        for k in [2, 4, 6]
             name  = "detection_mixedband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
-                n_snap  = n_snap,
                 ϕ       = range(-2/6*π, 2/6*π; length=k),
                 f_begin = vcat(fill(400.0, k÷2), fill(  10.0, k÷2)),
                 f_end   = vcat(fill(500.0, k÷2), fill(1000.0, k÷2)),
@@ -199,11 +200,13 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for snr in -14.:1.:10, n_snap in 2:2:12
+            for snr in -14.:1.:10, n_snap in 2:2:16
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-                df_rjmcmc[!, :snr]    .= snr
-                df_likeratio[!, :snr] .= snr
+                df_rjmcmc[!,    :snr]   .= snr
+                df_likeratio[!, :snr]   .= snr
+                df_rjmcmc[   !, :nsnap] .= n_snap
+                df_likeratio[!, :nsnap] .= n_snap
                 df′ = vcat(df_rjmcmc, df_likeratio)
                 println(df′)
                 df = vcat(df, df′)
@@ -223,7 +226,7 @@ function main()
         )
         @info(name, setup...)
         df = DataFrame()
-        for snr_diff in [0, 5, 10], separation in (1:20)*π/180, n_snap in 2:2:12
+        for snr_diff in [0, 5, 10], separation in (1:2:20)*π/180, n_snap in 2:2:16
             ϕ   = [0.0, separation]
             snr = [setup.base_snr + snr_diff, setup.base_snr]
             
@@ -234,6 +237,8 @@ function main()
             df_likeratio[!, :snr_diff]   .= snr_diff
             df_rjmcmc[!,    :separation] .= separation
             df_likeratio[!, :separation] .= separation
+            df_rjmcmc[!,    :nsnap]      .= n_snap
+            df_likeratio[!, :nsnap]      .= n_snap
 
             df′ = vcat(df_rjmcmc, df_likeratio)
             println(df′)
