@@ -60,7 +60,7 @@ function simulate_signal(
         X[.!mask,k] *= sqrt(signal_pow)
     end
     x_pad = irfft(X, n_dft, 1)
-    like  = WidebandIsoIsoLikelihood(n_samples, n_dft, filter, Δx, c, fs)
+    like  = WidebandIsoIsoLikelihood(n_dft, n_dft, filter, Δx, c, fs)
     y     = rand(rng, like, x_pad, ϕ; sigma=sqrt(noise_pow))
 
     if visualize
