@@ -225,8 +225,8 @@ function main()
         )
         @info(name, setup...)
         df = DataFrame()
-        for base_snr   in -4:4:8,
-            snr_diff   in [0, 5, 10],
+        for snr_diff   in [0, 5, 10],
+            base_snr   in -4:4:8,
             separation in (1:2:20)*π/180,
             n_snap     in 1:2:16
 
@@ -262,8 +262,8 @@ function main()
         )
         @info(name, setup...)
         df = DataFrame()
-        for base_snr   in -4:4:8,
-            snr_diff   in [0, 5, 10],
+        for snr_diff   in [0, 5, 10],
+            base_snr   in -4:4:8,
             separation in (1:2:20)*π/180,
             n_snap     in 1:2:16
 
