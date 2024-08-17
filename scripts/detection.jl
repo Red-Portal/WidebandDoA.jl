@@ -148,7 +148,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in 1:16, snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -174,7 +174,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in 1:16, snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -200,7 +200,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in 1:16, snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -314,7 +314,7 @@ function process_data()
 
     Plots.plot()
 
-    for nsnap in [1, 4, 8]
+    for nsnap in [1, 5, 9]
         df_rjmcmc    = statistics(
             @subset(df, :nsnap .== nsnap, :method .== Symbol("rjmcmc")),  :snr, :l0
         )
@@ -352,18 +352,27 @@ function process_data()
     Plots.plot()
 
     begin
-        nsnap = 8
+        nsnap    = 4
+        base_snr = 0
+        snr_diff = 10
+
         df_rjmcmc    = statistics(
             @subset(
                 df,
-                :base_snr .== -4.0,
+                :base_snr .== base_snr,
                 :nsnap    .== nsnap,
-                :snr_diff .== 0,
+                :snr_diff .== snr_diff,
                 :method   .== Symbol("rjmcmc")
             ), :separation, :l0
         )
         df_likeratio = statistics(
-            @subset(df, :nsnap .== nsnap, :snr_diff .== 0, :method .== Symbol("likeratio")), :separation, :l0
+            @subset(
+                df,
+                :base_snr .== base_snr,
+                :nsnap    .== nsnap,
+                :snr_diff .== snr_diff,
+                :method   .== Symbol("likeratio")
+            ), :separation, :l0
         )
 
         display(df_rjmcmc)
