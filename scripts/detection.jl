@@ -215,7 +215,7 @@ function main()
         end
 
     elseif ENV["TASK"] == "separation_wideband"
-        name  = "detection_separation.jld2"
+        name  = "detection_separation_wideband.jld2"
         setup = (
             n_bins   = 32,
             k        = 2,
@@ -252,7 +252,7 @@ function main()
         end
 
     elseif ENV["TASK"] == "separation_narrowband"
-        name  = "detection_separation.jld2"
+        name  = "detection_separation_narrowband.jld2"
         setup = (
             n_bins   = 32,
             k        = 2,
@@ -314,13 +314,16 @@ function process_data()
 
     Plots.plot()
 
-    for nsnap in 8:2:10
+    for nsnap in [1, 4, 8]
         df_rjmcmc    = statistics(
             @subset(df, :nsnap .== nsnap, :method .== Symbol("rjmcmc")),  :snr, :l0
         )
         df_likeratio = statistics(
             @subset(df, :nsnap .== nsnap, :method .== Symbol("likeratio")), :snr, :l0
         )
+
+        display(df_rjmcmc)
+        display(df_likeratio)
 
         Plots.plot!(
             df_rjmcmc.snr,
@@ -351,11 +354,20 @@ function process_data()
     begin
         nsnap = 8
         df_rjmcmc    = statistics(
-            @subset(df, :nsnap .== nsnap, :snr_diff .== 0, :method .== Symbol("rjmcmc")), :separation, :l0
+            @subset(
+                df,
+                :base_snr .== ,
+                :nsnap    .== nsnap,
+                :snr_diff .== 0,
+                :method   .== Symbol("rjmcmc")
+            ), :separation, :l0
         )
         df_likeratio = statistics(
             @subset(df, :nsnap .== nsnap, :snr_diff .== 0, :method .== Symbol("likeratio")), :separation, :l0
         )
+
+        display(df_rjmcmc)
+        display(df_likeratio)
 
         Plots.plot!(
             df_rjmcmc.separation*180/π,
