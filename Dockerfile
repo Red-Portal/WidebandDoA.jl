@@ -7,7 +7,7 @@ ENV JULIA_DEPOT_PATH ${USER_HOME_DIR}/.julia
 RUN useradd -m -d ${USER_HOME_DIR} ${USER}
 
 # Add unregistered dependencies
-RUN julia -e "using Pkg; Pkg.develop(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/WidebandDoA.jl\") "
+RUN julia -e "using Pkg; Pkg.develop(url=\"https://github.com/UBC-Stat-ML/mcmcse.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/ReversibleJump.jl\"); Pkg.develop(url=\"https://github.com/Red-Portal/WidebandDoA.jl\"); Pkg.add(\"SysInfo\")"
 
 # Copy source files
 ADD *.toml ${USER_HOME_DIR}/
