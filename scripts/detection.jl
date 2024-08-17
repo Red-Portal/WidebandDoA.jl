@@ -356,7 +356,7 @@ function process_data()
         df_rjmcmc    = statistics(
             @subset(
                 df,
-                :base_snr .== ,
+                :base_snr .== -4.0,
                 :nsnap    .== nsnap,
                 :snr_diff .== 0,
                 :method   .== Symbol("rjmcmc")
