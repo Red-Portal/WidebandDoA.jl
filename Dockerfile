@@ -24,4 +24,4 @@ USER ${USER}
 # configure the script entry point
 WORKDIR ${USER_HOME_DIR}
 
-ENTRYPOINT ["julia", "-e", "using Distributed, SysInfo; addprocs(SysInfo.ncores()); @everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]
+ENTRYPOINT ["julia", "-e", "using Distributed, SysInfo; addprocs(SysInfo.ncores() > 80 ? div(SysInfo.ncores(), 2) : 40); @everywhere using Pkg; @everywhere Pkg.activate(\"scripts\"); @everywhere include(\"scripts/detection.jl\"); @everywhere system_setup(is_hyper=true, start=0); main()"]

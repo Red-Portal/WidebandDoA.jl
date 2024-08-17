@@ -12,10 +12,10 @@ using ReversibleJump
 using WidebandDoA
 
 function system_setup(; use_mkl=false, is_hyper=false, start)
-    if myid() > 1
-       multiplier = is_hyper ? 2 : 1
-       run(`taskset -pc $(multiplier*(myid() - 2) + start) $(getpid())`)
-    end
+    #if myid() > 1
+    #   multiplier = is_hyper ? 2 : 1
+    #   run(`taskset -pc $(multiplier*(myid() - 2) + start) $(getpid())`)
+    #end
     BLAS.set_num_threads(1)
 end
 
