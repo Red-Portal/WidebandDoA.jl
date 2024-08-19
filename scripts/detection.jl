@@ -2,14 +2,15 @@
 using AbstractMCMC
 using Base.Iterators
 using DataFrames, DataFramesMeta
-using Distributions
 using Distributed
+using Distributions
+using HDF5
+using JLD2
+using Plots
+using ProgressMeter
 using Random, Random123
 using ReversibleJump
 using WidebandDoA
-using ProgressMeter
-using Plots
-using JLD2
 
 include("common.jl")
 include("baselines/baselines.jl")
@@ -226,9 +227,9 @@ function main()
         @info(name, setup...)
         df = DataFrame()
         for snr_diff   in [0, 5, 10],
-            n_snap     in [1, 2, 4, 8],
-            base_snr   in -4:4:8,
-            separation in (1:2:20)*π/180
+            n_snap     in [1, 2, 4, 8, 12],
+            base_snr   in -8:4:4,
+            separation in (1:.5:10)*π/180
 
             ϕ   = [0.0, separation]
             snr = [base_snr + snr_diff, base_snr]
@@ -263,9 +264,9 @@ function main()
         @info(name, setup...)
         df = DataFrame()
         for snr_diff   in [0, 5, 10],
-            n_snap     in [1, 2, 4, 8],
-            base_snr   in -4:4:8,
-            separation in (1:2:20)*π/180
+            n_snap     in [1, 2, 4, 8, 12],
+            base_snr   in -10:5:5,
+            separation in (1:.5:10)*π/180
 
             ϕ   = [0.0, separation]
             snr = [base_snr + snr_diff, base_snr]
@@ -306,95 +307,114 @@ function statistics(df, group_key, statistic)
 end
 
 function process_data()
-    k    = 2
-    name = "detection_narrowband_k=$(k).jld2"
+    # for name in [
+    #     "detection_narrowband_k=2",
+    #     "detection_wideband_k=2",
+    #     "detection_mixedband_k=2",
+    #     #
+    #     "detection_narrowband_k=4",
+    #     "detection_wideband_k=4",
+    #     "detection_mixedband_k=4",
+    #     #
+    #     "detection_narrowband_k=6",
+    #     "detection_wideband_k=6",
+    #     "detection_mixedband_k=6",
+    # ]
+    #     df, setup = JLD2.load(datadir("raw", name*".jld2"), "data", "setup")
+    #     @info("setup", setup...)
 
-    df, setup = JLD2.load(datadir("raw", name), "data", "setup")
-    @info("setup", setup...)
+    #     Plots.plot()
 
-    Plots.plot()
+    #     h5open(datadir("pro", name*".h5"), "w") do io
+    #         for nsnap in [1, 2, 4, 8, 12]
+    #             df_rjmcmc    = statistics(
+    #                 @subset(df, :nsnap .== nsnap, :method .== Symbol("rjmcmc")),  :snr, :l0
+    #             )
+    #             df_likeratio = statistics(
+    #                 @subset(df, :nsnap .== nsnap, :method .== Symbol("likeratio")), :snr, :l0
+    #             )
 
-    for nsnap in [1, 5, 9]
-        df_rjmcmc    = statistics(
-            @subset(df, :nsnap .== nsnap, :method .== Symbol("rjmcmc")),  :snr, :l0
-        )
-        df_likeratio = statistics(
-            @subset(df, :nsnap .== nsnap, :method .== Symbol("likeratio")), :snr, :l0
-        )
+    #             Plots.plot!(df_rjmcmc.snr   , 1 .- df_rjmcmc.l0_mean   , color=:blue) |> display
+    #             Plots.plot!(df_likeratio.snr, 1 .- df_likeratio.l0_mean, color=:red ) |> display
 
-        display(df_rjmcmc)
-        display(df_likeratio)
+    #             pcorrect_rjmcmc       = @. 1 - df_rjmcmc.l0_mean
+    #             pcorrect_rjmcmc_upper = @. abs((1 - df_rjmcmc.l0_lower) - pcorrect_rjmcmc)
+    #             pcorrect_rjmcmc_lower = @. abs((1 - df_rjmcmc.l0_upper) - pcorrect_rjmcmc)
+    #             x_rjmcmc = df_rjmcmc.snr
+    #             y_rjmcmc = hcat(
+    #                 pcorrect_rjmcmc, pcorrect_rjmcmc_upper, pcorrect_rjmcmc_lower
+    #             )' |> Array
 
-        Plots.plot!(
-            df_rjmcmc.snr,
-            1 .- df_rjmcmc.l0_mean,
-            #ribbon=(
-            #    @. abs.(df_rjmcmc.l0_lower + (1 - df_rjmcmc.l0_mean)),
-            #    @. df_rjmcmc.l0_upper      + (1 - df_rjmcmc.l0_mean)
-            #),
-            color=:blue
-        )  |> display
-        Plots.plot!(
-            df_likeratio.snr,
-            1 .- df_likeratio.l0_mean,
-            #ribbon=(
-            #    @. abs(df_likeratio.l0_lower + (1 - df_likeratio.l0_mean)),
-            #    @. df_likeratio.l0_upper     + (1 - df_likeratio.l0_mean)
-            #),
-            color=:red
-        ) |> display
-    end
+    #             pcorrect_likeratio       = @. 1 - df_likeratio.l0_mean
+    #             pcorrect_likeratio_upper = @. abs((1 - df_likeratio.l0_lower) - pcorrect_likeratio)
+    #             pcorrect_likeratio_lower = @. abs((1 - df_likeratio.l0_upper) - pcorrect_likeratio)
+    #             x_likeratio = df_rjmcmc.snr
+    #             y_likeratio = hcat(
+    #                 pcorrect_likeratio, pcorrect_likeratio_upper, pcorrect_likeratio_lower
+    #             )' |> Array
 
-    name = "detection_separation.jld2"
-    df, setup = JLD2.load(datadir("raw", name), "data", "setup")
-    @info("setup", setup...)
+    #             write(io, "x_rjmcmc_$(nsnap)", x_rjmcmc)
+    #             write(io, "y_rjmcmc_$(nsnap)", y_rjmcmc)
+    #             write(io, "x_likeratio_$(nsnap)", x_likeratio)
+    #             write(io, "y_likeratio_$(nsnap)", y_likeratio)
+    #         end
+    #     end
+    # end
 
-    Plots.plot()
+    for name in [
+        "detection_separation_narrowband"
+        #"detection_separation_wideband"
+    ]
 
-    begin
-        nsnap    = 4
-        base_snr = 0
-        snr_diff = 10
+        df, setup = JLD2.load(datadir("raw", name*".jld2"), "data", "setup")
+        @info("setup", setup...)
+        Plots.plot()
 
-        df_rjmcmc    = statistics(
-            @subset(
-                df,
-                :base_snr .== base_snr,
-                :nsnap    .== nsnap,
-                :snr_diff .== snr_diff,
-                :method   .== Symbol("rjmcmc")
-            ), :separation, :l0
-        )
-        df_likeratio = statistics(
-            @subset(
-                df,
-                :base_snr .== base_snr,
-                :nsnap    .== nsnap,
-                :snr_diff .== snr_diff,
-                :method   .== Symbol("likeratio")
-            ), :separation, :l0
-        )
+        begin
+            nsnap    = 8
+            base_snr = -4
+            snr_diff = 0 #10
 
-        display(df_rjmcmc)
-        display(df_likeratio)
+            df_rjmcmc    = statistics(
+                @subset(
+                    df,
+                    :base_snr .== base_snr,
+                    :nsnap    .== nsnap,
+                    :snr_diff .== snr_diff,
+                    :method   .== Symbol("rjmcmc")
+                ), :separation, :l0
+            )
+            df_likeratio = statistics(
+                @subset(
+                    df,
+                    :base_snr .== base_snr,
+                    :nsnap    .== nsnap,
+                    :snr_diff .== snr_diff,
+                    :method   .== Symbol("likeratio")
+                ), :separation, :l0
+            )
 
-        Plots.plot!(
-            df_rjmcmc.separation*180/π,
-            1 .- df_rjmcmc.l0_mean,
-            #ribbon=(
-            #    @. abs.(df_rjmcmc.l0_lower + (1 - df_rjmcmc.l0_mean)),
-            #    @. df_rjmcmc.l0_upper      + (1 - df_rjmcmc.l0_mean)
-            #),
-            color=:blue
-        )  |> display
-        Plots.plot!(
-            df_likeratio.separation*180/π,
-            1 .- df_likeratio.l0_mean,
-            #ribbon=(
-            #    @. abs(df_likeratio.l0_lower + (1 - df_likeratio.l0_mean)),
-            #    @. df_likeratio.l0_upper     + (1 - df_likeratio.l0_mean)
-            #),
-            color=:red
-        ) |> display
+            display(df_rjmcmc)
+            display(df_likeratio)
+
+            Plots.plot!(
+                df_rjmcmc.separation*180/π,
+                1 .- df_rjmcmc.l0_mean,
+                #ribbon=(
+                #    @. abs.(df_rjmcmc.l0_lower + (1 - df_rjmcmc.l0_mean)),
+                #    @. df_rjmcmc.l0_upper      + (1 - df_rjmcmc.l0_mean)
+                #),
+                color=:blue
+            )  |> display
+            Plots.plot!(
+                df_likeratio.separation*180/π,
+                1 .- df_likeratio.l0_mean,
+                #ribbon=(
+                #    @. abs(df_likeratio.l0_lower + (1 - df_likeratio.l0_mean)),
+                #    @. df_likeratio.l0_upper     + (1 - df_likeratio.l0_mean)
+                #),
+                color=:red
+            ) |> display
+        end
     end
 end
