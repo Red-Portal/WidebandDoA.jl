@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.43
+# v0.19.45
 
 using Markdown
 using InteractiveUtils
@@ -23,8 +23,6 @@ begin
 	using WidebandDoA
 	using StableRNGs
 	using LinearAlgebra
-
-	include("scratch.jl")
 end
 
 # ╔═╡ 56b27ce4-49a7-49ed-933f-99b94ccb43f6
@@ -93,7 +91,7 @@ end
 
 # ╔═╡ 7da18e2b-2303-4abe-9a78-3a960c562dc8
 begin
-    n_samples = 5000
+    n_samples = 10000
     n_anneal  = 4
 
     #path  = ArithmeticPath(n_anneal)
