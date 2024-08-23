@@ -265,7 +265,7 @@ function main()
         df = DataFrame()
         for snr_diff   in [0, 5, 10],
             n_snap     in [1, 2, 4, 8, 12],
-            base_snr   in -10:5:5,
+            base_snr   in -8:4:4,
             separation in (1:.5:10)*π/180
 
             ϕ   = [0.0, separation]
@@ -362,8 +362,8 @@ function process_data()
     # end
 
     for name in [
-        "detection_separation_narrowband"
-        #"detection_separation_wideband"
+        #"detection_separation_narrowband"
+        "detection_separation_wideband"
     ]
 
         df, setup = JLD2.load(datadir("raw", name*".jld2"), "data", "setup")
@@ -371,9 +371,9 @@ function process_data()
         Plots.plot()
 
         begin
-            nsnap    = 8
-            base_snr = -4
-            snr_diff = 0 #10
+            nsnap    = 4
+            base_snr = 0
+            snr_diff = 0
 
             df_rjmcmc    = statistics(
                 @subset(
