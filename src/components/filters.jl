@@ -50,6 +50,31 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
     H
 end
 
+
+struct WindowedPaddedSinc <: AbstractDelayFilter
+    filt::WindowedSinc
+    n_fft::Int
+end
+
+function array_delay(filter::WindowedPaddedSinc, Δn::Matrix{T})  where {T<:Real}
+    (; filt, n_fft) = filter
+    n_sensors, n_sources = size(Δn)
+
+    # Doesn't work. Sinc is not circular
+    
+    @tullio h[n,m,k] = begin
+        if n ≤ n_tap
+            d = Δn[m,k]
+            #w = cos(π*(n - 1 - d)/n_fft)/sinc((n - 1 - d)/n_fft)
+            fc = 0.3
+            sinc(2*fc*mod(n-1+d, n_tap))*fc
+        else
+            0
+        end
+    end
+    fft(h, 1)
+end
+
 struct ComplexShift <: AbstractDelayFilter
     n_fft::Int
 end

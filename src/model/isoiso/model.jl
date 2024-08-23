@@ -24,6 +24,7 @@ function WidebandIsoIsoModel(
     n_fft       ::Int  = n_samples*2 - 1,
 )
     delay_filter = WindowedSinc(n_fft)
+    #delay_filter = WidebandDoA.WindowedPaddedSinc(delay_filter, n_fft)
     prior = WidebandIsoSourcePrior(
         n_samples,
         n_fft,
