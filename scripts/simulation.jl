@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.43
+# v0.19.45
 
 using Markdown
 using InteractiveUtils
@@ -32,15 +32,16 @@ begin
 	include("common.jl")
 
 	rng = Random.default_rng()
-	ϕ   = [-0.5, 0.5, 1.0]
-	snr = 0.0
+	ϕ   = [-π/3, 0.0, π/3,]
+	snr = 10.0
 
 	N     = 64
-    n_dft = 1024
+    n_dft = 2*N
 	fs    = 2000.
 	model = construct_default_model(N, fs)
 	c, Δx = model.likelihood.c, model.likelihood.Δx
-	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, [100, 100, 100], [300, 300, 300], fs, 1.0, Δx, c)
+	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, [100, 100, 100.], [500, 500, 500], fs, 1.0, Δx, c; visualize=true)
+	#y    /= std(y)
 	cond  = WidebandConditioned(model, y)
 end
 
@@ -128,7 +129,7 @@ end
 Plots.plot([stat.order for stat in stats], xlabel="RJMCMC Iteration", ylabel="Model order", label="Model order trace")
 
 # ╔═╡ 75c9c639-7a09-4dbb-a8aa-d49695b2e5a0
-Plots.histogram([stat.order for stat in stats], xlabel="order")
+Plots.histogram([stat.order for stat in stats], xlabel="order", normed=true)
 
 # ╔═╡ f0dcf695-7b9f-4929-8a48-be003ec8b4bc
 begin
@@ -144,7 +145,7 @@ end
 # ╔═╡ 05e2cf48-8b23-4c94-8146-3f8fa4ac8def
 begin
     flat = vcat(samples[n_samples ÷ 10:end]...)
-    Plots.histogram([f.phi for f in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior")
+    Plots.histogram([f.phi for f in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior")
     Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 end
 
