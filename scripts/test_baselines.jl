@@ -40,25 +40,27 @@ function test_likeratiotest()
     )
     x    = mapslices(xi -> DSP.Filters.filt(bpf, xi), ϵ; dims=1)
 
-    snrs = -8:2:8
+    snrs = -10:2:0
 
     n_trials = 10
     l0_error = map(snrs) do snr
         prog = Progress(n_trials)
         mean(1:n_trials) do _
             σ2   = 10^(-snr/10)
-            like = WidebandIsoIsoLikelihood(N, filter, Δx, c, fs)
+            like = WidebandIsoIsoLikelihood(N, 4*N, filter, Δx, c, fs)
             y    = rand(rng, like, x, ϕ; sigma=sqrt(σ2*Δf/fs))
 
             config        = ArrayConfig(c, Δx)
             R, Y, f_range = snapshot_covariance(y, n_fft, fs, n_snap)
 
-            idx_sel = 12:23
+            idx_sel = 13:22
             R_sel   = R[:,:,idx_sel]
             f_sel   = f_range[idx_sel]
+            Y_sel   = Y[:,:,idx_sel]
 
             k, _ = likeratiotest(
                 rng,
+                Y_sel,
                 R_sel,
                 0.1,
                 k_max,
