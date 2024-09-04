@@ -1,5 +1,5 @@
 
-function subbandbartlett(
+function subbanddas(
     R      ::Array,
     θ_range::AbstractVector,
     f_range::AbstractVector,
@@ -35,8 +35,9 @@ end
 function cfar(
     power  ::AbstractVector,
     n_guard::Int,
-    n_train::Int,
-    gain   ::Real
+    n_train::Int;
+    false_alarm_rate::Real = 0.1,
+    gain                   = nothing,
 )
     N = length(power)
     peak_indices, peak_powers = Peaks.findmaxima(power)
@@ -60,7 +61,12 @@ function cfar(
             end
         end
 
-        thres = gain*avg 
+        gain = if isnothing(gain)
+            n_data*(false_alarm_rate^(-1/n_data) - 1)
+        else
+            gain
+        end
+        thres = gain*avg
         peak_power ≥ thres
     end
 end
