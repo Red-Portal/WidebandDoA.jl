@@ -19,52 +19,48 @@ function ratio_test_statistic(
     invlike_alt = real(tr(P⊥_alt*R_bin))
     invlike_nul = real(tr(P⊥_nul*R_bin))
 
-    -log(invlike_alt) + log(invlike_nul)
+    log(invlike_nul) - log(invlike_alt)
 end
 
 function null_statistics(
-    n_temp_snapshots::Int,
-    n_channel       ::Int,
-    m               ::Int,
+    n_snapshots::Int,
+    n_channel  ::Int,
+    m          ::Int,
 )
-    n1    = n_temp_snapshots*(2 + 1)
-    n2    = n_temp_snapshots*(2*n_channel - 2*m - 1)
-    μ     = digamma(n1/2 + n2/2) - digamma(n2/2)
-    σ2    = trigamma(n2/2)       - trigamma(n1/2 + n2/2)
+    n1 = n_snapshots*(2 + 1)
+    n2 = n_snapshots*(2*n_channel - 2*m - 1)
+
+    μ  = digamma(n1/2 + n2/2) - digamma(n2/2)
+    σ2 = trigamma(n2/2)       - trigamma(n1/2 + n2/2)
     μ, σ2
 end
 
 function boostrap_statistics(
     rng             ::Random.AbstractRNG,
     z               ::AbstractVector,
-    n_temp_snapshots::Int,
-    n_channel       ::Int,
-    m               ::Int,
     n_bootstrap     ::Int,
     n_bootstrap_nest::Int,
-    n_bins          ::Int,
+    μ_null          ::Real,
 )
-    μ, _  = null_statistics(n_temp_snapshots, n_channel, m)
+    n_bins = length(z)
     map(1:n_bootstrap) do _
         z_boot      = StatsBase.sample(rng, z, n_bins)
         μ_boot      = mean(z_boot)
         μ_boot_nest = map(1:n_bootstrap_nest) do _
             mean(StatsBase.sample(rng, z_boot, n_bins))
         end
-        σ_nest = std(μ_boot_nest; corrected=true, mean=μ_boot)
-        abs(μ_boot - μ) / σ_nest
+        σ_nest = std(μ_boot_nest; corrected=true)
+        abs(μ_boot - μ_null) / σ_nest
     end
 end
 
 function test_threshold(
-    z               ::AbstractVector,
-    n_temp_snapshots::Int,
-    n_channel       ::Int,
-    m               ::Int,
+    z      ::AbstractVector,
+    μ_null ::Real,
+    σ2_null::Real,
 )
-    μ_est = mean(z)
-    μ, σ2 = null_statistics(n_temp_snapshots, n_channel, m)
-    abs(μ_est - μ) / sqrt(σ2)
+    n_bins = length(z)
+    abs(mean(z) - μ_null) / sqrt(σ2_null/n_bins)
 end
 
 function benjaminihochberg(
@@ -80,8 +76,6 @@ function benjaminihochberg(
     for m in 1:M
         if pvals_sorted[m] ≤ q*m/M
             k = m
-        else
-            break
         end
     end
 
@@ -107,11 +101,10 @@ function likeratiotest(
     n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap       = 128,
-    n_bootstrap_nest  = 128,
-    n_eval_point      = 256,
-    rate_upsample     = 64,
-    n_ml_iterations   = 200,
+    n_bootstrap       = 1024,
+    n_bootstrap_nest  = 1024,
+    n_ml_iterations   = 100,
+    ml_tolerance      = 1e-5,
     visualize         = true,
 )
     #=
@@ -120,7 +113,6 @@ function likeratiotest(
         in IEEE Transactions on Signal Processing, 2007.
     =##
 
-    n_bins    = size(R, 3)
     n_channel = size(R, 2)
 
     @assert n_max_targets < n_channel
@@ -129,25 +121,14 @@ function likeratiotest(
     θs       = [Float64[]]
 
     for m in 1:n_max_targets
-        θ        = last(θs)
-        θ_init   = dml_incremental_optimize(
+        θ     = last(θs)
+        θ_alt = dml_incremental_optimize(
             θ,
             R,
             n_snapshots,
             f_range,
             conf;
-            n_eval_point,
-            rate_upsample,
-            visualize,
-        )
-
-        θ_alt, _ = dml_sage(
-            Y, R, m, f_range, conf;
-            n_iters = n_ml_iterations,
-            θ_init  = θ_init,
-            n_eval_point,
-            rate_upsample,
-            visualize,
+            visualize = true,
         )
 
         if !isfinite(dml_loglikelihood(θ_alt, R, n_snapshots, f_range, conf))
@@ -158,29 +139,29 @@ function likeratiotest(
             ratio_test_statistic(θ_alt, θ, view(R, :,:,n), fc, conf)
         end
 
-        T_boot  = boostrap_statistics(
-           rng,
-           z,
-           n_snapshots,
-           n_channel,
-           m,
-           n_bootstrap,
-           n_bootstrap_nest,
-           n_bins
-        )
-        T_thres = test_threshold(z, n_snapshots, n_channel, m)
-        rank    = sum(T_boot .< T_thres)
-        p_value = 1 - rank/n_bootstrap
+
+        μ_null, σ2_null = null_statistics(n_snapshots, n_channel, m)
+        T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, μ_null)
+        T_thres         = test_threshold(z, μ_null, σ2_null)
+        p_value         = mean(T_boot .> T_thres)
 
         if visualize
             @info(
                 "",
-                test_statistic = mean(T_boot),
+                mean(z)        = mean(z),
+                test_statistic = median(T_boot),
                 test_threshold = T_thres,
-                rank           = rank,
                 p_value
             )
         end
+
+        θ_alt, _ = dml_sage(
+            Y, R, m, f_range, conf;
+            n_iters   = n_ml_iterations,
+            θ_init    = θ_alt,
+            tolerance = ml_tolerance,
+            visualize,
+        )
 
         push!(p_values, p_value)
         push!(θs, θ_alt)
@@ -191,7 +172,7 @@ function likeratiotest(
         n_max_targets,
         visualize
     )
-    k, θs[k+1]
+    k, θs[k+1], p_values
 end
 
 function likeratiotest(
@@ -201,8 +182,8 @@ function likeratiotest(
     n_snapshots    ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap      = 128,
-    n_bootstrap_nest = 128,
+    n_bootstrap      = 1024,
+    n_bootstrap_nest = 1024,
     n_eval_point     = 256,
     n_am_iterations  = 10,
     rate_upsample    = 8,

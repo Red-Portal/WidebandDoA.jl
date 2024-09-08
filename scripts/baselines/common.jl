@@ -15,12 +15,12 @@ function steering_matrix(θ::AbstractVector, fc::Real, conf::ArrayConfig)
 end
 
 function snapshot_covariance(
-    x                  ::Array,
-    n_fft              ::Int,
-    fs                 ::Real,
-    n_temporal_snapshot::Int
+    x         ::Array,
+    n_fft     ::Int,
+    fs        ::Real,
+    n_snapshot::Int
 )
-    l_snap = div(size(x, 1), n_temporal_snapshot)
+    l_snap = div(size(x, 1), n_snapshot)
     X_ch   = map(eachcol(x)) do x_ch
         DSP.stft(x_ch, l_snap, 0; nfft=n_fft)
     end
@@ -29,7 +29,7 @@ function snapshot_covariance(
 
     # X ∈ C^{ snapshot × channel × bins }
     X = permutedims(X, (2, 3, 1))
-    @tullio Σ[i,j,n] := X[k,i,n]*conj(X[k,j,n])/size(X,2)
+    @tullio Σ[i,j,n] := X[k,i,n]*conj(X[k,j,n])/size(X,1)
 
     Δf      = fs / n_fft
     f_range = (0:size(Σ,3)-1)*Δf
