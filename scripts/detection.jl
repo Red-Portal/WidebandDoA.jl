@@ -196,7 +196,7 @@ function main()
         end
 
     elseif ENV["TASK"] == "mixedband"
-        for k in [2, 4, 6]
+        for k in [2, 4, 6, 8, 10]
             name  = "detection_mixedband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
