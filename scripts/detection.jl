@@ -92,7 +92,7 @@ function simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
     y
 end
 
-function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
+function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs; kwargs...)
     n_reps = 100
     seed   = (0x97dcb950eaebcfba, 0x741d36b68bef6415)
     k_true = length(ϕ)
@@ -103,14 +103,21 @@ function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 
         y = simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 
-        k = if method == :rjmcmc
-            estimate_rjmcmc(rng, n_bins, n_snap, fs, y)
-        else
-            estimate_likeratiotest(rng, n_bins, n_snap, fs, y)
+        res = @timed begin
+            if method == :rjmcmc
+                estimate_rjmcmc(rng, n_bins, n_snap, fs, y; kwargs...)
+            elseif method == :likeratio
+                estimate_likeratiotest(rng, n_bins, n_snap, fs, y; kwargs...)
+            else method == :dascfar
+                estimate_subbanddascfar(rng, n_bins, n_snap, fs, y; kwargs...)
+            end
         end
-        l1 = abs(k - k_true)
-        l0 = 1 - Int(k == k_true)
-        DataFrame(method=method, l1=l1, l0=l0,)
+        k        = res.value
+        t        = res.time
+        l1       = abs(k - k_true)
+        l0       = 1 - Int(k == k_true)
+        pcorrect = Int(k == k_true)
+        DataFrame(method=method, l1=l1, l0=l0, pcorrect=pcorrect, time=t)
     end
     vcat(dfs...)
 end
@@ -124,11 +131,10 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in 1:16, snr in -14.:1.:10
+            for n_snap in 1:1:32
+                snr = 0.0
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
-                df_rjmcmc[   !, :snr]   .= snr
-                df_likeratio[!, :snr]   .= snr
                 df_rjmcmc[   !, :nsnap] .= n_snap
                 df_likeratio[!, :nsnap] .= n_snap
                 df′ = vcat(df_rjmcmc, df_likeratio)
@@ -138,7 +144,7 @@ function main()
             end
 
     elseif ENV["TASK"] == "wideband"
-        for k in [2, 4, 6]
+        for k in [2, 4, 6, 8, 10]
             name  = "detection_wideband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
@@ -149,7 +155,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[   !, :snr]   .= snr
@@ -164,7 +170,7 @@ function main()
         end
 
     elseif ENV["TASK"] == "narrowband"
-        for k in [2, 4, 6]
+        for k in [2, 4, 6, 8, 10]
             name  = "detection_narrowband_k=$(k).jld2"
             setup = (
                 n_bins  = 32,
@@ -175,7 +181,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -201,7 +207,7 @@ function main()
             )
             @info(name, setup...)
             df = DataFrame()
-            for n_snap in [1, 2, 4, 8, 12], snr in -14.:1.:10
+            for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_rjmcmc[!,    :snr]   .= snr
@@ -226,8 +232,8 @@ function main()
         )
         @info(name, setup...)
         df = DataFrame()
-        for snr_diff   in [0, 5, 10],
-            n_snap     in [1, 2, 4, 8, 12],
+        for snr_diff   in [0, 5,],
+            n_snap     in [1, 2, 4, 8, 16, 32],
             base_snr   in -8:4:4,
             separation in (1:.5:10)*π/180
 
@@ -263,8 +269,8 @@ function main()
         )
         @info(name, setup...)
         df = DataFrame()
-        for snr_diff   in [0, 5, 10],
-            n_snap     in [1, 2, 4, 8, 12],
+        for snr_diff   in [0, 5,],
+            n_snap     in [1, 2, 4, 8, 16, 32],
             base_snr   in -8:4:4,
             separation in (1:.5:10)*π/180
 
@@ -306,7 +312,50 @@ function statistics(df, group_key, statistic)
     end
 end
 
+function convert_plot_series_pcorrect(df, xkey)
+    pcorrect       = @. 1 - df.l0_mean
+    pcorrect_upper = @. abs((1 - df.l0_lower) - pcorrect)
+    pcorrect_lower = @. abs((1 - df.l0_upper) - pcorrect)
+
+    x = df[:,xkey]
+    y = hcat(pcorrect, pcorrect_upper, pcorrect_lower)' |> Array
+    x, y
+end
+
 function process_data()
+    # begin
+    #     name = "detection_null"
+
+    #     df, setup = JLD2.load(datadir("raw", name*".jld2"), "data", "setup")
+    #     @info("setup", setup...)
+
+    #     Plots.plot()
+
+    #     h5open(datadir("pro", name*".h5"), "w") do io
+    #         snr = 0.0
+
+    #         df_rjmcmc    = statistics(
+    #             @subset(df, :snr .== snr, :method .== Symbol("rjmcmc")),  :nsnap, :l0
+    #         )
+    #         df_likeratio = statistics(
+    #             @subset(df, :snr .== snr, :method .== Symbol("likeratio")), :nsnap, :l0
+    #         )
+
+    #         println(df_rjmcmc)
+
+    #         Plots.plot!(df_rjmcmc.nsnap ,   1 .- df_rjmcmc.l0_mean   , color=:blue) |> display
+    #         Plots.plot!(df_likeratio.nsnap, 1 .- df_likeratio.l0_mean, color=:red ) |> display
+
+    #         x_rjmcmc, y_rjmcmc       = convert_plot_series_pcorrect(df_rjmcmc,    :nsnap)
+    #         x_likeratio, y_likeratio = convert_plot_series_pcorrect(df_likeratio, :nsnap)
+
+    #         write(io, "x_rjmcmc",    x_rjmcmc)
+    #         write(io, "y_rjmcmc",    y_rjmcmc)
+    #         write(io, "x_likeratio", x_likeratio)
+    #         write(io, "y_likeratio", y_likeratio)
+    #     end
+    # end
+
     # for name in [
     #     "detection_narrowband_k=2",
     #     "detection_wideband_k=2",
@@ -371,8 +420,8 @@ function process_data()
         Plots.plot()
 
         begin
-            nsnap    = 4
-            base_snr = 0
+            nsnap    = 8
+            base_snr = 4
             snr_diff = 0
 
             df_rjmcmc    = statistics(
