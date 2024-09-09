@@ -1,5 +1,6 @@
 
 using AbstractMCMC
+using Base.GC
 using Base.Iterators
 using DataFrames, DataFramesMeta
 using Distributed
@@ -121,6 +122,7 @@ function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs; kwa
         pcorrect = Int(k == k_true)
         DataFrame(method=method, l1=l1, l0=l0, pcorrect=pcorrect, time=t)
     end
+    GC.gc()
     vcat(dfs...)
 end
 
