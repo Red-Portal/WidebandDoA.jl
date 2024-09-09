@@ -101,8 +101,8 @@ function likeratiotest(
     n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap       = 128,
-    n_bootstrap_nest  = 128,
+    n_bootstrap       = 256,
+    n_bootstrap_nest  = 256,
     n_ml_iterations   = 100,
     ml_tolerance      = 1e-3,
     visualize         = true,
