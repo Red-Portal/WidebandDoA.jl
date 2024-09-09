@@ -48,7 +48,10 @@ function dml_incremental_optimize(
         [-π/2],
         [π/2],
         [θk],
-        SAMIN(neps=size(R,1), verbosity=0),
+        SAMIN(
+            neps=size(R,1),
+            verbosity=0,
+        ),
         Optim.Options(
             time_limit=5,
             show_every=0,

@@ -174,34 +174,3 @@ function likeratiotest(
     )
     k, θs[k+1], p_values
 end
-
-function likeratiotest(
-    R,
-    rate_false_detection::Real,
-    n_max_targets       ::Int,
-    n_snapshots    ::Int,
-    f_range             ::AbstractVector,
-    conf                ::ArrayConfig;
-    n_bootstrap      = 1024,
-    n_bootstrap_nest = 1024,
-    n_eval_point     = 256,
-    n_am_iterations  = 10,
-    rate_upsample    = 8,
-    visualize        = true,
-)
-   likeratiotest(
-       Random.default_rng(),
-       R,
-       rate_false_detection,
-       n_max_targets,
-       n_snapshots,
-       f_range,
-       conf;
-       n_bootstrap      = n_bootstrap,
-       n_bootstrap_nest = n_bootstrap_nest,
-       n_am_iterations  = n_am_iterations,
-       n_eval_point     = n_eval_point,
-       rate_upsample    = rate_upsample,
-       visualize        = visualize,
-    ) 
-end
