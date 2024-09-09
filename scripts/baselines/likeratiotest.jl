@@ -140,7 +140,7 @@ function likeratiotest(
         end
 
         μ_null, σ2_null = null_statistics(n_snapshots, n_channel, m)
-        T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, μ_null)
+        T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, mean(z))
         T_thres         = test_threshold(z, μ_null, σ2_null)
         p_value         = mean(T_boot .> T_thres)
 
