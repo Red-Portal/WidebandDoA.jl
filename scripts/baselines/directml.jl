@@ -18,15 +18,11 @@ function dml_loglikelihood(
 )
     n_channels = size(R,1)
     sum(enumerate(f_range)) do (n, fc)
-        try
-            P   = proj(θ, fc, conf)
-            P⊥ = I - P
-            Rω  = view(R,:,:,n)
-            σ2  = real(tr(P⊥*Rω))/n_channels
-            -n_channels*n_snapshots*log(σ2)
-        catch
-            -Inf
-        end
+        P   = proj(θ, fc, conf)
+        P⊥ = I - P
+        Rω  = view(R,:,:,n)
+        σ2  = real(tr(P⊥*Rω))/n_channels
+        -n_channels*n_snapshots*log(σ2)
     end
 end
 
@@ -53,7 +49,7 @@ function dml_incremental_optimize(
             verbosity=0,
         ),
         Optim.Options(
-            time_limit=5,
+            time_limit=1,
             show_every=0,
             show_trace=false,
         )
@@ -76,39 +72,12 @@ function dml_incremental_optimize(
         display(res)
     end
     θk = Optim.minimizer(res) |> only
-    
 
     if visualize
         Plots.plot(range(-π/2, π/2; length=1024), obj) |> display
         Plots.vline!([θk]) |> display
     end
     vcat(θ, θk)
-end
-
-function dml_refine_optimize(
-    θ             ::AbstractVector,
-    R,
-    n_snapshots   ::Int,
-    f_range       ::AbstractVector,
-    conf          ::ArrayConfig;
-    visualize     ::Bool,
-)
-    k = length(θ)
-    res = Optim.optimize(
-        θ′ -> -dml_loglikelihood(θ′, R, n_snapshots, f_range, conf),
-        fill(-π/2, k),
-        fill(π/2, k),
-        θ,
-        Fminbox(LBFGS()),
-        Optim.Options(
-            iterations=10,
-            show_every=1,
-        );
-    )
-    if visualize
-        display(res)
-    end
-    Optim.minimizer(res), -Optim.minimum(res)
 end
 
 function dml_greedy_optimize(
@@ -205,7 +174,10 @@ function dml_sage(
                 end
             end
 
-            res  = Optim.optimize(θk -> -cond_objective(θk), -π/2, π/2, Brent();)
+            res  = Optim.optimize(
+                θk -> -cond_objective(θk), -π/2, π/2, Brent();
+                rel_tol=sqrt(tolerance), abs_tol=tolerance
+            )
             θ[k] = Optim.minimizer(res) |> only
 
             @inbounds for j in 1:J 

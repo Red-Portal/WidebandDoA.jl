@@ -101,10 +101,10 @@ function likeratiotest(
     n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap       = 1024,
-    n_bootstrap_nest  = 1024,
+    n_bootstrap       = 128,
+    n_bootstrap_nest  = 128,
     n_ml_iterations   = 100,
-    ml_tolerance      = 1e-5,
+    ml_tolerance      = 1e-3,
     visualize         = true,
 )
     #=
@@ -128,7 +128,7 @@ function likeratiotest(
             n_snapshots,
             f_range,
             conf;
-            visualize = true,
+            visualize,
         )
 
         if !isfinite(dml_loglikelihood(θ_alt, R, n_snapshots, f_range, conf))
@@ -138,7 +138,6 @@ function likeratiotest(
         z = map(enumerate(f_range)) do (n, fc)
             ratio_test_statistic(θ_alt, θ, view(R, :,:,n), fc, conf)
         end
-
 
         μ_null, σ2_null = null_statistics(n_snapshots, n_channel, m)
         T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, μ_null)
@@ -169,7 +168,7 @@ function likeratiotest(
     k = benjaminihochberg(
         p_values,
         rate_false_detection,
-        n_max_targets,
+        length(p_values),
         visualize
     )
     k, θs[k+1], p_values
