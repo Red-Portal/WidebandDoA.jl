@@ -93,8 +93,18 @@ function simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
     y
 end
 
-function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs; kwargs...)
-    n_reps = 100
+function run_experiment(
+    method,
+    n_bins,
+    n_snap,
+    ϕ,
+    snr,
+    f_begin,
+    f_end,
+    fs;
+    n_reps=100,
+    kwargs...
+)
     seed   = (0x97dcb950eaebcfba, 0x741d36b68bef6415)
     k_true = length(ϕ)
 
@@ -136,9 +146,10 @@ function main()
             @info(name, setup...)
             df = DataFrame()
             for n_snap in 1:1:32
-                snr = 0.0
-                df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
-                df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs)
+                snr    = 0.0
+                n_reps = 1000
+                df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs, n_reps)
+                df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs, n_reps)
                 df_rjmcmc[   !, :nsnap] .= n_snap
                 df_likeratio[!, :nsnap] .= n_snap
                 df′ = vcat(df_rjmcmc, df_likeratio)
