@@ -108,8 +108,10 @@ function run_experiment(method, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs; kwa
                 estimate_rjmcmc(rng, n_bins, n_snap, fs, y; kwargs...)
             elseif method == :likeratio
                 estimate_likeratiotest(rng, n_bins, n_snap, fs, y; kwargs...)
-            else method == :dascfar
+            elseif method == :dascfar
                 estimate_subbanddascfar(rng, n_bins, n_snap, fs, y; kwargs...)
+            elseif method == :mvdrcfar
+                estimate_subbandmvdrcfar(rng, n_bins, n_snap, fs, y; kwargs...)
             end
         end
         k        = res.value
@@ -312,13 +314,13 @@ function statistics(df, group_key, statistic)
     end
 end
 
-function convert_plot_series_pcorrect(df, xkey)
-    pcorrect       = @. 1 - df.l0_mean
-    pcorrect_upper = @. abs((1 - df.l0_lower) - pcorrect)
-    pcorrect_lower = @. abs((1 - df.l0_upper) - pcorrect)
+function process_plot_series(df::DataFrame, stat::Symbol, xkey::Symbol)
+    y       = df[:,string(stat)*"_mean"]
+    y_upper = @. abs(df[:,string(stat)*"_lower"] - y)
+    y_lower = @. abs(df[:,string(stat)*"_upper"] - y)
 
     x = df[:,xkey]
-    y = hcat(pcorrect, pcorrect_upper, pcorrect_lower)' |> Array
+    y = hcat(y, y_upper, y_lower)' |> Array
     x, y
 end
 

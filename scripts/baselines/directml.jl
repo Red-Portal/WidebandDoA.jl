@@ -55,6 +55,9 @@ function dml_incremental_optimize(
             show_trace=false,
         )
     );
+    if visualize
+        display(res)
+    end
     θk = Optim.minimizer(res) |> only
 
     res = Optim.optimize(
@@ -62,8 +65,13 @@ function dml_incremental_optimize(
         [-π/2],
         [π/2],
         [θk],
-        Fminbox(LBFGS()),
+        Fminbox(
+            LBFGS(linesearch=LineSearches.BackTracking())
+        ),
     );
+    if visualize
+        display(res)
+    end
     θk = Optim.minimizer(res) |> only
     
 

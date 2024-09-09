@@ -2,7 +2,7 @@
 using FFTW
 using FillArrays
 using LinearAlgebra
-using Optim
+using Optim, LineSearches
 using Peaks
 using Plots
 using SpecialFunctions
