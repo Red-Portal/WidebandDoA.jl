@@ -17,7 +17,7 @@ function subbandmvdr(
     θ_range  ::AbstractVector,
     f_range  ::AbstractVector,
     conf     ::ArrayConfig;
-    dl_factor::Real = 1e-3/size(R,1)
+    dl_factor::Real = 1e-1/size(R,1)
 )
     mapreduce(hcat, enumerate(f_range)) do (j, f)
         Af = steering_matrix(θ_range, f_range[j], conf)
@@ -25,9 +25,9 @@ function subbandmvdr(
 
         # Diagonal loading.
         # Factor recommendd by Featherstone et al. (1997)
-        Rf_dl = Rf + tr(Rf)*dl_factor*I
+        Rf_smooth_dl = Rf + tr(Rf)*dl_factor*I
 
-        ARinvA = sum(conj(Af).*(Rf_dl\Af), dims=1)[1,:]
+        ARinvA = sum(conj(Af).*(Rf_smooth_dl\Af), dims=1)[1,:]
         @. 1 / real(ARinvA)
     end
 end
