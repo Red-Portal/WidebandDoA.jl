@@ -128,7 +128,6 @@ function likeratiotest(
             n_snapshots,
             f_range,
             conf;
-            ml_tolerance,
             visualize,
         )
 
