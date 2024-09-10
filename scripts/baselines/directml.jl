@@ -205,49 +205,37 @@ function dml_sage(
             Plots.plot(loglike[1:i]) |> display
         end
     end
-    θ_opt, ll_opt
+    θ, ll_opt
 end
 
-function dml_alternating_maximization(
+function dml_sequential_ml(
     y,
     R,
-    n_sources,
+    n_max_sources,
     f_range,
     conf;
-    n_iters  ::Int  = 50,
-    θ_init          = nothing,
+    n_iters  ::Int  = 100,
     visualize::Bool = false,
     tolerance::Real = 1e-6,
 )
-    K = n_sources
-    N = size(y,1)
+    n_channel = size(R, 2)
+    n_snap    = size(y, 1)
 
-    θ = if isnothing(θ_init)
-        dml_greedy_optimize(n_sources, R, N, f_range, conf; visualize)
-    else
-        θ_init
+    @assert n_max_sources < n_channel
+
+    θs       = [Float64[]]
+    loglikes = [dml_loglikelihood(last(θs), R, n_snap, f_range, conf)]
+
+    for m in 1:n_max_sources
+        θ = last(θs)
+        θ = dml_incremental_optimize(
+            θ, R, n_snap, f_range, conf; visualize
+        )
+        θ, loglike = dml_sage(
+            y, R, m, f_range,conf; visualize, θ_init=θ, tolerance=sqrt(tolerance), n_iters=n_iters
+        )
+        push!(θs, θ)
+        push!(loglikes, loglike)
     end
-
-    loglike = Array{Float64}(undef, n_iters)
-    for t in 1:n_iters
-        for k in 1:K
-            obj(θk) = begin
-                θ[k] = θk
-                dml_loglikelihood(θ, R, N, f_range, conf)
-            end
-            res = Optim.optimize(θk -> -obj(θk), -π/2, π/2, Brent();)
-            θ[k] = Optim.minimizer(res)
-        end
-
-        loglike[t] = dml_loglikelihood(θ, R, N, f_range, conf)
-
-        if t > 1 && abs(loglike[t] - loglike[t-1]) < tolerance
-           return θ, loglike[t]
-        end
-
-        if visualize
-            Plots.plot(loglike[1:t]) |> display
-        end
-    end
-    θ, last(loglike)
+    θs, loglikes
 end
