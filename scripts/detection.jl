@@ -83,6 +83,29 @@ function estimate_likeratiotest(
     k
 end
 
+function estimate_infocrit(
+          ::Random.AbstractRNG,
+    crit  ::Symbol,
+    n_bins::Int,
+    n_snap::Int,
+    fs    ::Real,
+    y     ::AbstractMatrix
+)
+    model = construct_default_model(n_bins*n_snap, fs)
+    c     = model.likelihood.c
+    Δx    = model.likelihood.Δx
+
+    R, y, f_range = snapshot_covariance(y, n_bins, fs, n_snap)
+    R_sel = R[:,:,2:end]
+    y_sel = y[:,:,2:end]
+    f_sel = f_range[2:end]
+
+    k, _  = infocrit(
+        crit, y_sel, R_sel, 10, f_sel, ArrayConfig(c, Δx); visualize=false,
+    )
+    k
+end
+
 function simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
     model = construct_default_model(1, fs)
     c, Δx = model.likelihood.c, model.likelihood.Δx
@@ -111,6 +134,7 @@ function run_experiment(
     dfs = @showprogress pmap(1:n_reps) do key
         rng  = Random123.Philox4x(UInt64, seed, 8)
         Random123.set_counter!(rng, key)
+        Random.seed!(rand(rng, UInt64))
 
         y = simulate_signal(rng, n_bins, n_snap, ϕ, snr, f_begin, f_end, fs)
 
@@ -123,6 +147,8 @@ function run_experiment(
                 estimate_subbanddascfar(rng, n_bins, n_snap, fs, y; kwargs...)
             elseif method == :mvdrcfar
                 estimate_subbandmvdrcfar(rng, n_bins, n_snap, fs, y; kwargs...)
+            elseif method == :aic || method == :bic
+                estimate_infocrit(rng, method, n_bins, n_snap, fs, y; kwargs...)
             end
         end
         k        = res.value
@@ -150,9 +176,10 @@ function main()
                 n_reps = 1000
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs; n_reps)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs; n_reps)
-                df_rjmcmc[   !, :nsnap] .= n_snap
-                df_likeratio[!, :nsnap] .= n_snap
-                df′ = vcat(df_rjmcmc, df_likeratio)
+                df_aic       = run_experiment(:aic      , setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs; n_reps)
+                df_bic       = run_experiment(:bic      , setup.n_bins, n_snap, Float64[], snr, [], [], setup.fs; n_reps)
+                df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+                df′[!, :nsnap] .= n_snap
                 println(df′)
                 df = vcat(df, df′)
                 JLD2.save(datadir("raw", name), "data", df, "setup", setup)
@@ -173,11 +200,11 @@ function main()
             for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-                df_rjmcmc[   !, :snr]   .= snr
-                df_likeratio[!, :snr]   .= snr
-                df_rjmcmc[   !, :nsnap] .= n_snap
-                df_likeratio[!, :nsnap] .= n_snap
-                df′ = vcat(df_rjmcmc, df_likeratio)
+                df_aic       = run_experiment(:aic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df_bic       = run_experiment(:bic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+                df′[!, :snr]   .= snr
+                df′[!, :nsnap] .= n_snap
                 println(df′)
                 df = vcat(df, df′)
                 JLD2.save(datadir("raw", name), "data", df, "setup", setup)
@@ -199,11 +226,11 @@ function main()
             for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-                df_rjmcmc[!,    :snr]   .= snr
-                df_likeratio[!, :snr]   .= snr
-                df_rjmcmc[   !, :nsnap] .= n_snap
-                df_likeratio[!, :nsnap] .= n_snap
-                df′ = vcat(df_rjmcmc, df_likeratio)
+                df_aic       = run_experiment(:aic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df_bic       = run_experiment(:bic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+                df′[!, :snr]   .= snr
+                df′[!, :nsnap] .= n_snap
                 println(df′)
                 df = vcat(df, df′)
                 JLD2.save(datadir("raw", name), "data", df, "setup", setup)
@@ -225,11 +252,11 @@ function main()
             for n_snap in [1, 2, 4, 8, 16, 32], snr in -14.:1.:10
                 df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
                 df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-                df_rjmcmc[!,    :snr]   .= snr
-                df_likeratio[!, :snr]   .= snr
-                df_rjmcmc[   !, :nsnap] .= n_snap
-                df_likeratio[!, :nsnap] .= n_snap
-                df′ = vcat(df_rjmcmc, df_likeratio)
+                df_aic       = run_experiment(:aic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df_bic       = run_experiment(:bic,       setup.n_bins, n_snap, setup.ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+                df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+                df′[!, :snr]   .= snr
+                df′[!, :nsnap] .= n_snap
                 println(df′)
                 df = vcat(df, df′)
                 JLD2.save(datadir("raw", name), "data", df, "setup", setup)
@@ -257,17 +284,13 @@ function main()
 
             df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
             df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-
-            df_rjmcmc[!,    :base_snr]   .= base_snr
-            df_likeratio[!, :base_snr]   .= base_snr
-            df_rjmcmc[!,    :snr_diff]   .= snr_diff
-            df_likeratio[!, :snr_diff]   .= snr_diff
-            df_rjmcmc[!,    :separation] .= separation
-            df_likeratio[!, :separation] .= separation
-            df_rjmcmc[!,    :nsnap]      .= n_snap
-            df_likeratio[!, :nsnap]      .= n_snap
-
-            df′ = vcat(df_rjmcmc, df_likeratio)
+            df_aic       = run_experiment(:aic,       setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+            df_bic       = run_experiment(:bic,       setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+            df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+            df′[!, :base_snr]   .= base_snr
+            df′[!, :snr_diff]   .= snr_diff
+            df′[!, :separation] .= separation
+            df′[!, :nsnap]      .= n_snap
             println(df′)
             df = vcat(df, df′)
             JLD2.save(datadir("raw", name), "data", df, "setup", setup)
@@ -294,17 +317,13 @@ function main()
 
             df_rjmcmc    = run_experiment(:rjmcmc,    setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
             df_likeratio = run_experiment(:likeratio, setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
-
-            df_rjmcmc[!,    :base_snr]   .= base_snr
-            df_likeratio[!, :base_snr]   .= base_snr
-            df_rjmcmc[!,    :snr_diff]   .= snr_diff
-            df_likeratio[!, :snr_diff]   .= snr_diff
-            df_rjmcmc[!,    :separation] .= separation
-            df_likeratio[!, :separation] .= separation
-            df_rjmcmc[!,    :nsnap]      .= n_snap
-            df_likeratio[!, :nsnap]      .= n_snap
-
-            df′ = vcat(df_rjmcmc, df_likeratio)
+            df_aic       = run_experiment(:aic,       setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+            df_bic       = run_experiment(:bic,       setup.n_bins, n_snap, ϕ, snr, setup.f_begin, setup.f_end, setup.fs)
+            df′ = vcat(df_rjmcmc, df_likeratio, df_aic, df_bic)
+            df′[!, :base_snr]   .= base_snr
+            df′[!, :snr_diff]   .= snr_diff
+            df′[!, :separation] .= separation
+            df′[!, :nsnap]      .= n_snap
             println(df′)
             df = vcat(df, df′)
             JLD2.save(datadir("raw", name), "data", df, "setup", setup)

@@ -104,7 +104,7 @@ function likeratiotest(
     n_bootstrap       = 256,
     n_bootstrap_nest  = 256,
     n_ml_iterations   = 100,
-    ml_tolerance      = 1e-3,
+    ml_tolerance      = 1e-6,
     visualize         = true,
 )
     #=
@@ -128,6 +128,7 @@ function likeratiotest(
             n_snapshots,
             f_range,
             conf;
+            ml_tolerance,
             visualize,
         )
 
