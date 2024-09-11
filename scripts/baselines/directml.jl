@@ -18,11 +18,15 @@ function dml_loglikelihood(
 )
     n_channels = size(R,1)
     sum(enumerate(f_range)) do (n, fc)
-        P   = proj(θ, fc, conf)
-        P⊥ = I - P
-        Rω  = view(R,:,:,n)
-        σ2  = real(tr(P⊥*Rω))/n_channels
-        -n_channels*n_snapshots*log(σ2)
+        try
+            P   = proj(θ, fc, conf)
+            P⊥ = I - P
+            Rω  = view(R,:,:,n)
+            σ2  = real(tr(P⊥*Rω))/n_channels
+            -n_channels*n_snapshots*log(σ2)
+        catch
+            -Inf
+        end
     end
 end
 
