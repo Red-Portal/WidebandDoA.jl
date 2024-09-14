@@ -39,16 +39,23 @@ function infocrit(
     crit         ::Symbol,
     y,
     R,
-    n_max_sources::Int,
-    f_range      ::AbstractVector,
-    conf         ::ArrayConfig;
-    n_iters      ::Int  = 100,
-    tolerance    ::Real = 1e-6,
-    visualize    ::Bool = false,
+    n_max_sources     ::Int,
+    f_range           ::AbstractVector,
+    conf              ::ArrayConfig;
+    n_iters           ::Int  = 100,
+    ml_inner_tolerance::Real = 1e-6,
+    ml_outer_tolerance::Real = 1e-3,
+    visualize         ::Bool = false,
 )
     n_bins  = size(R, 3)
     n_snap  = size(y, 1)
-    θs, lls = dml_sequential_ml(y, R, n_max_sources, f_range, conf; n_iters, visualize, tolerance)
+    θs, lls = dml_sequential_ml(
+        y, R, n_max_sources, f_range, conf;
+        n_iters,
+        visualize,
+        inner_tolerance=ml_inner_tolerance,
+        outer_tolerance=ml_outer_tolerance,
+    )
     infocrit(crit, lls, θs, n_bins, n_snap; visualize)
 end
 

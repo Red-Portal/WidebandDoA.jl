@@ -31,12 +31,13 @@ function dml_loglikelihood(
 end
 
 function dml_incremental_optimize(
-    θ             ::AbstractVector,
+    θ          ::AbstractVector,
     R,
-    n_snapshots   ::Int,
-    f_range       ::AbstractVector,
-    conf          ::ArrayConfig;
-    visualize     ::Bool,
+    n_snapshots::Int,
+    f_range    ::AbstractVector,
+    conf       ::ArrayConfig;
+    visualize  ::Bool,
+    tolerance  ::Real
 )
     obj(θk) = dml_loglikelihood(vcat(θ, θk), R, n_snapshots, f_range, conf)
 
@@ -46,16 +47,16 @@ function dml_incremental_optimize(
     opt = NLopt.Opt(:GN_DIRECT, 1)
     NLopt.lower_bounds!(opt, [-π/2])
     NLopt.upper_bounds!(opt, [π/2])
+    NLopt.xtol_rel!(opt, sqrt(tolerance))
+    NLopt.xtol_abs!(opt, tolerance)
+    NLopt.ftol_abs!(opt, tolerance)
     NLopt.max_objective!(opt, (θk′, g) -> obj(θk′))
-    NLopt.maxeval!(opt, 1000)
     _, res, _ = NLopt.optimize(opt, [θk])
     θk = only(res)
 
     res = Optim.optimize(
         θk′ -> -obj(θk′ |> only),
-        [-π/2],
-        [π/2],
-        [θk],
+        [-π/2], [π/2], [θk],
         Fminbox(
             LBFGS(linesearch=LineSearches.BackTracking())
         ),
@@ -78,11 +79,14 @@ function dml_greedy_optimize(
     n_snapshots,
     f_range,
     conf;
-    visualize
+    visualize,
+    tolerance,
 )
     θ = Float64[]
     for _ in 1:n_sources
-        θ = dml_incremental_optimize(θ, R, n_snapshots, f_range, conf; visualize)
+        θ = dml_incremental_optimize(
+            θ, R, n_snapshots, f_range, conf; visualize, tolerance
+        )
     end
     θ
 end
@@ -93,10 +97,11 @@ function dml_sage(
     n_sources,
     f_range,
     conf;
-    n_iters  ::Int  = 100,
-    θ_init          = nothing,
-    visualize::Bool = false,
-    tolerance::Real = 1e-6,
+    n_iters  ::Int        = 100,
+    θ_init                = nothing,
+    visualize::Bool       = false,
+    inner_tolerance::Real = 1e-6,
+    outer_tolerance::Real = 1e-3,
 )
     #=
         Space-Alternating Generalized Expectation-Maximization (SAGE)
@@ -117,7 +122,10 @@ function dml_sage(
     J = size(y,3)
 
     θ = if isnothing(θ_init)
-        dml_greedy_optimize(n_sources, R, N, f_range, conf; visualize)
+        dml_greedy_optimize(
+            n_sources, R, N, f_range, conf;
+            visualize, tolerance=inner_tolerance
+        )
     else
         θ_init
     end
@@ -167,15 +175,22 @@ function dml_sage(
             end
 
             # Warm initialize with Brent's method
-            res  = Optim.optimize(θk -> -cond_objective(θk), -π/2, π/2, Brent();)
+            res  = Optim.optimize(
+                θk -> -cond_objective(θk), -π/2, π/2, Brent();
+                rel_tol=sqrt(inner_tolerance),
+                abs_tol=inner_tolerance
+            )
             θ[k] = Optim.minimizer(res) |> only
 
             # Refine with DIRECT
             opt = NLopt.Opt(:GN_DIRECT, 1)
             NLopt.lower_bounds!(opt, [-π/2])
             NLopt.upper_bounds!(opt, [π/2])
+            NLopt.xtol_rel!(opt, sqrt(inner_tolerance))
+            NLopt.xtol_abs!(opt, inner_tolerance)
+            NLopt.ftol_abs!(opt, inner_tolerance)
             NLopt.max_objective!(opt, (θk′, g) -> cond_objective(θk′ |> only))
-            NLopt.maxeval!(opt, 200)
+            #NLopt.maxeval!(opt, 200)
             _, res, ret = NLopt.optimize(opt, θ[k:k])
             θ[k] = only(res)
 
@@ -196,7 +211,7 @@ function dml_sage(
             ll_opt = loglike[i]
         end
 
-        if i > 1 && abs(loglike[i] - loglike[i-1]) < tolerance
+        if i > 1 && abs(loglike[i] - loglike[i-1]) < outer_tolerance
             return θ_opt, ll_opt
         end
 
@@ -213,9 +228,10 @@ function dml_sequential_ml(
     n_max_sources,
     f_range,
     conf;
-    n_iters  ::Int  = 100,
-    visualize::Bool = false,
-    tolerance::Real = 1e-3,
+    n_iters        ::Int  = 100,
+    visualize      ::Bool = false,
+    inner_tolerance::Real = 1e-6,
+    outer_tolerance::Real = 1e-3,
 )
     n_channel = size(R, 2)
     n_snap    = size(y, 1)
@@ -228,11 +244,15 @@ function dml_sequential_ml(
     for m in 1:n_max_sources
         θ = last(θs)
         θ = dml_incremental_optimize(
-            θ, R, n_snap, f_range, conf; visualize
+            θ, R, n_snap, f_range, conf;
+            visualize,
+            tolerance=inner_tolerance,
         )
         θ, loglike = dml_sage(
             y, R, m, f_range,conf; visualize, θ_init=θ,
-            tolerance=sqrt(tolerance), n_iters=n_iters
+            inner_tolerance=inner_tolerance,
+            outer_tolerance=outer_tolerance,
+            n_iters=n_iters
         )
         push!(θs, θ)
         push!(loglikes, loglike)

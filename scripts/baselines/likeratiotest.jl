@@ -101,11 +101,12 @@ function likeratiotest(
     n_snapshots         ::Int,
     f_range             ::AbstractVector,
     conf                ::ArrayConfig;
-    n_bootstrap       = 256,
-    n_bootstrap_nest  = 256,
-    n_ml_iterations   = 200,
-    ml_tolerance      = 1e-3,
-    visualize         = true,
+    n_bootstrap        = 256,
+    n_bootstrap_nest   = 256,
+    n_ml_iterations    = 200,
+    ml_inner_tolerance = 1e-6,
+    ml_outer_tolerance = 1e-6,
+    visualize          = true,
 )
     #=
         P. Chung, J. F. Bohme, C. F. Mecklenbrauker and A. O. Hero, 
@@ -129,6 +130,7 @@ function likeratiotest(
             f_range,
             conf;
             visualize,
+            tolerance = ml_inner_tolerance,
         )
 
         if !isfinite(dml_loglikelihood(θ_alt, R, n_snapshots, f_range, conf))
@@ -156,9 +158,10 @@ function likeratiotest(
 
         θ_alt, _ = dml_sage(
             Y, R, m, f_range, conf;
-            n_iters   = n_ml_iterations,
-            θ_init    = θ_alt,
-            tolerance = ml_tolerance,
+            n_iters         = n_ml_iterations,
+            θ_init          = θ_alt,
+            inner_tolerance = ml_inner_tolerance,
+            outer_tolerance = ml_outer_tolerance,
             visualize,
         )
 
