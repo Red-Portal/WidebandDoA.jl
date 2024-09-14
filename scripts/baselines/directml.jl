@@ -43,25 +43,13 @@ function dml_incremental_optimize(
     res = Optim.optimize(θk′ -> -obj(θk′), -π/2, π/2, Brent();)
     θk  = Optim.minimizer(res)
 
-    res = Optim.optimize(
-        θk′ -> -obj(θk′ |> only),
-        [-π/2],
-        [π/2],
-        [θk],
-        SAMIN(
-            neps=size(R,1),
-            verbosity=0,
-        ),
-        Optim.Options(
-            time_limit=1,
-            show_every=0,
-            show_trace=false,
-        )
-    );
-    if visualize
-        display(res)
-    end
-    θk = Optim.minimizer(res) |> only
+    opt = NLopt.Opt(:GN_DIRECT, 1)
+    NLopt.lower_bounds!(opt, [-π/2])
+    NLopt.upper_bounds!(opt, [π/2])
+    NLopt.max_objective!(opt, (θk′, g) -> obj(θk′))
+    NLopt.maxeval!(opt, 1000)
+    _, res, _ = NLopt.optimize(opt, [θk])
+    θk = only(res)
 
     res = Optim.optimize(
         θk′ -> -obj(θk′ |> only),
@@ -178,11 +166,18 @@ function dml_sage(
                 end
             end
 
-            res  = Optim.optimize(
-                θk -> -cond_objective(θk), -π/2, π/2, Brent();
-                rel_tol=sqrt(tolerance), abs_tol=tolerance
-            )
+            # Warm initialize with Brent's method
+            res  = Optim.optimize(θk -> -cond_objective(θk), -π/2, π/2, Brent();)
             θ[k] = Optim.minimizer(res) |> only
+
+            # Refine with DIRECT
+            opt = NLopt.Opt(:GN_DIRECT, 1)
+            NLopt.lower_bounds!(opt, [-π/2])
+            NLopt.upper_bounds!(opt, [π/2])
+            NLopt.max_objective!(opt, (θk′, g) -> cond_objective(θk′ |> only))
+            NLopt.maxeval!(opt, 200)
+            _, res, ret = NLopt.optimize(opt, θ[k:k])
+            θ[k] = only(res)
 
             @inbounds for j in 1:J 
                 f   = f_range[j]
@@ -220,7 +215,7 @@ function dml_sequential_ml(
     conf;
     n_iters  ::Int  = 100,
     visualize::Bool = false,
-    tolerance::Real = 1e-6,
+    tolerance::Real = 1e-3,
 )
     n_channel = size(R, 2)
     n_snap    = size(y, 1)
@@ -236,7 +231,8 @@ function dml_sequential_ml(
             θ, R, n_snap, f_range, conf; visualize
         )
         θ, loglike = dml_sage(
-            y, R, m, f_range,conf; visualize, θ_init=θ, tolerance=sqrt(tolerance), n_iters=n_iters
+            y, R, m, f_range,conf; visualize, θ_init=θ,
+            tolerance=sqrt(tolerance), n_iters=n_iters
         )
         push!(θs, θ)
         push!(loglikes, loglike)

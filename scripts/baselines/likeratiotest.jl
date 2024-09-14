@@ -60,7 +60,7 @@ function test_threshold(
     σ2_null::Real,
 )
     n_bins = length(z)
-    abs(mean(z) - μ_null) / sqrt(σ2_null/n_bins)
+    abs(mean(z) - μ_null) / sqrt(σ2_null)
 end
 
 function benjaminihochberg(
@@ -103,8 +103,8 @@ function likeratiotest(
     conf                ::ArrayConfig;
     n_bootstrap       = 256,
     n_bootstrap_nest  = 256,
-    n_ml_iterations   = 100,
-    ml_tolerance      = 1e-6,
+    n_ml_iterations   = 200,
+    ml_tolerance      = 1e-3,
     visualize         = true,
 )
     #=
@@ -140,7 +140,7 @@ function likeratiotest(
         end
 
         μ_null, σ2_null = null_statistics(n_snapshots, n_channel, m)
-        T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, mean(z))
+        T_boot          = boostrap_statistics(rng, z, n_bootstrap, n_bootstrap_nest, μ_null)
         T_thres         = test_threshold(z, μ_null, σ2_null)
         p_value         = mean(T_boot .> T_thres)
 
