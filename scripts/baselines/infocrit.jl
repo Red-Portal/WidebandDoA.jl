@@ -42,7 +42,7 @@ function infocrit(
     n_max_sources     ::Int,
     f_range           ::AbstractVector,
     conf              ::ArrayConfig;
-    n_iters           ::Int  = 100,
+    n_iters           ::Int  = 200,
     ml_inner_tolerance::Real = 1e-6,
     ml_outer_tolerance::Real = 1e-3,
     visualize         ::Bool = false,

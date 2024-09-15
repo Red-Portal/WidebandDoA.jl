@@ -50,6 +50,7 @@ function dml_incremental_optimize(
     NLopt.xtol_rel!(opt, sqrt(tolerance))
     NLopt.xtol_abs!(opt, tolerance)
     NLopt.ftol_abs!(opt, tolerance)
+    NLopt.maxeval!(opt, 1000)
     NLopt.max_objective!(opt, (θk′, g) -> obj(θk′))
     _, res, _ = NLopt.optimize(opt, [θk])
     θk = only(res)
@@ -174,25 +175,17 @@ function dml_sage(
                 end
             end
 
-            # Warm initialize with Brent's method
-            res  = Optim.optimize(
-                θk -> -cond_objective(θk), -π/2, π/2, Brent();
-                rel_tol=sqrt(inner_tolerance),
-                abs_tol=inner_tolerance
-            )
+            res = Optim.optimize(
+                θk′ -> -cond_objective(θk′ |> only),
+                [-π/2], [π/2], θ[k:k],
+                Fminbox(
+                    LBFGS(linesearch=LineSearches.BackTracking())
+                ),
+            );
+            if visualize
+                display(res)
+            end
             θ[k] = Optim.minimizer(res) |> only
-
-            # Refine with DIRECT
-            opt = NLopt.Opt(:GN_DIRECT, 1)
-            NLopt.lower_bounds!(opt, [-π/2])
-            NLopt.upper_bounds!(opt, [π/2])
-            NLopt.xtol_rel!(opt, sqrt(inner_tolerance))
-            NLopt.xtol_abs!(opt, inner_tolerance)
-            NLopt.ftol_abs!(opt, inner_tolerance)
-            NLopt.max_objective!(opt, (θk′, g) -> cond_objective(θk′ |> only))
-            #NLopt.maxeval!(opt, 200)
-            _, res, ret = NLopt.optimize(opt, θ[k:k])
-            θ[k] = only(res)
 
             @inbounds for j in 1:J 
                 f   = f_range[j]
