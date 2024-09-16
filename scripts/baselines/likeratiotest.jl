@@ -59,7 +59,6 @@ function test_threshold(
     μ_null ::Real,
     σ2_null::Real,
 )
-    n_bins = length(z)
     abs(mean(z) - μ_null) / sqrt(σ2_null)
 end
 
@@ -105,7 +104,7 @@ function likeratiotest(
     n_bootstrap_nest   = 256,
     n_ml_iterations    = 200,
     ml_inner_tolerance = 1e-6,
-    ml_outer_tolerance = 1e-6,
+    ml_outer_tolerance = 1e-3,
     visualize          = true,
 )
     #=
