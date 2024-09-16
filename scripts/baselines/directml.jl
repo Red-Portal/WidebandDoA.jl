@@ -22,7 +22,7 @@ function dml_loglikelihood(
             P   = proj(θ, fc, conf)
             P⊥ = I - P
             Rω  = view(R,:,:,n)
-            σ2  = real(tr(P⊥*Rω))/n_channels
+            σ2  = real(tr(P⊥*Rω))
             -n_channels*n_snapshots*log(σ2)
         catch
             -Inf
