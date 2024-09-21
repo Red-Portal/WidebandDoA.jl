@@ -167,18 +167,12 @@ function relabel(
 ) where {T <: Real}
     μ, σ, w, λ = sem_fit(rng, samples, n_mixtures, n_iter, n_imh_iter, show_progress)
 
-    labeled = [Array{T}(undef, 0) for _ in 1:n_mixtures]
-    prog    = ProgressMeter.Progress(n_iter; enabled=show_progress)
+    all_labels = Vector{Int}[]
+    prog       = ProgressMeter.Progress(n_iter; enabled=show_progress)
     for (idx, sample) in enumerate(samples)
         labels = sem_sample_allocation(rng, sample, μ, σ, w, λ, n_imh_iter)
-
-        for (j, xj) in enumerate(sample)
-            label = labels[j]
-            if label ≤ n_mixtures
-                push!(labeled[label], xj)
-            end
-        end
+        push!(all_labels, labels)
         next!(prog, showvalues=[(:state,:relabel), (:sample_idx,idx)])
     end
-    MixtureModel(Normal.(μ, σ), w/sum(w)), labeled
+    MixtureModel(Normal.(μ, σ), w/sum(w)), all_labels
 end
