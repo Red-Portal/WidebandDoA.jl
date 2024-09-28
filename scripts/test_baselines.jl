@@ -67,12 +67,13 @@ function test_likeratiotest()
                 n_snap,
                 f_sel,
                 config;
+                visualize=false
             )
             next!(prog)
             k == length(ϕ)
         end
     end
-    Plots.plot(snrs, l0_error)
+    Plots.plot(snrs, l0_error, ylims=[0,1])
 end
 
 function test_infocrit()

@@ -17,12 +17,12 @@ include("common.jl")
 function run_reconstruction(rng, ϕ, snr, N, visualize=false)
     ϕ     = [ϕ]
     n_dft = 1024
-    fs    = 2000.
+    fs    = 3000.
     model = construct_default_model(N, fs)
     c, Δx = model.likelihood.c, model.likelihood.Δx
 
     f_begin   = 10
-    f_end     = 200
+    f_end     = 1000
     y, a_true = simulate_signal(
         rng, N, n_dft, ϕ, snr, f_begin, f_end, fs, 1.0, Δx, c; visualize
     )
@@ -52,7 +52,7 @@ function run_reconstruction(rng, ϕ, snr, N, visualize=false)
 
     a_recon_chain = map(params_chain[1:n_thin:end]) do θ
         a_cond = WidebandDoA.reconstruct(cond, θ)
-        (rand(rng, a_cond), mean(a_cond))
+        (rand(rng, a_cond)[1:N,:], mean(a_cond)[1:N,:])
     end
     a_recon_chain_samples = mapreduce(first, hcat, a_recon_chain)
     a_recon_chain_mean    = mean(last, a_recon_chain)
@@ -78,7 +78,7 @@ function run_visualization(snr)
         y_true  = a_true[:,1]
         y_mmse  = a_recon_mean
         y_recon = eachcol(a_recon_samples)
-        writedlm(io, hcat(t, y_true, y_mmse, y_recon...), ',')
+        writedlm(io, hcat(0:length(t)-1, y_true, y_mmse, y_recon...), ',')
     end
 end
 
