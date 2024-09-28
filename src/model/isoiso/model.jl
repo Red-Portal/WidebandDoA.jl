@@ -21,7 +21,7 @@ function WidebandIsoIsoModel(
     α           ::Real = 0,
     β           ::Real = 0;
     order_prior ::DiscreteDistribution = NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)),
-    n_fft       ::Int  = n_samples*2 - 1,
+    n_fft       ::Int  = n_samples*2,
 )
     delay_filter = WindowedSinc(n_fft)
     #delay_filter = WidebandDoA.WindowedPaddedSinc(delay_filter, n_fft)
