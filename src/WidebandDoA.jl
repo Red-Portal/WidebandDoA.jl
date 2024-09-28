@@ -78,20 +78,15 @@ function block_fft(m::Int, N::Int)
     Φ    = blockdiag(fill(W_sp, m)...)
     Φ, Φ'
 end
+export
+    WindowedSinc,
+    ComplexShift
 
-"""
-    reconstruct(cond::WidebandConditioned, params)
+include("components/filters.jl")
 
-Conditional posterior of the latent source signals for reconstruction given conditioned model `cond` and `params`
+export WidebandConditioned
 
-# Arguments
-* `cond::WidebandConditioned`: Conditioned model.
-* `params`: Additional parameters we need to condition on.
-
-# Returns
-* `cond_post`: Conditional posterior for the latent source signals.
-"""
-function reconstruct(::WidebandConditioned, ::Any) end
+include("components/conditioned.jl")
 
 
 """
@@ -109,15 +104,19 @@ Sample from a wideband signal model.
 """
 function Base.rand(::Random.AbstractRNG, ::AbstractWidebandModel) end
 
-export
-    WindowedSinc,
-    ComplexShift
+"""
+    reconstruct(cond::WidebandConditioned, params)
 
-include("components/filters.jl")
+Conditional posterior of the latent source signals for reconstruction given conditioned model `cond` and `params`
 
-export WidebandConditioned
+# Arguments
+* `cond::WidebandConditioned`: Conditioned model.
+* `params`: Additional parameters we need to condition on.
 
-include("components/conditioned.jl")
+# Returns
+* `cond_post`: Conditional posterior for the latent source signals.
+"""
+function reconstruct(::WidebandConditioned, ::Any) end
 
 export UniformNormalLocalProposal
 
