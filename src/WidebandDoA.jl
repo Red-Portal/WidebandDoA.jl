@@ -54,10 +54,20 @@ abstract type AbstractWidebandConditionedModel <: AbstractMCMC.AbstractModel end
 
 abstract type AbstractWidebandPrior end
 
+"""
+    logpriordensity(prior, params)
+
+Log density of `prior` evaluated on `params`.
+"""
 function logpriordensity end
 
 abstract type AbstractWidebandLikelihood end
 
+"""
+    loglikelihood(likelihood, params)
+
+Log likelihood of `likelihood` evaluated on `params`.
+"""
 function loglikelihood end
 
 function block_fft(m::Int, N::Int)
@@ -69,7 +79,35 @@ function block_fft(m::Int, N::Int)
     Φ, Φ'
 end
 
-function reconstruct end
+"""
+    reconstruct(cond::WidebandConditioned, params)
+
+Conditional posterior of the latent source signals for reconstruction given conditioned model `cond` and `params`
+
+# Arguments
+* `cond::WidebandConditioned`: Conditioned model.
+* `params`: Additional parameters we need to condition on.
+
+# Returns
+* `cond_post`: Conditional posterior for the latent source signals.
+"""
+function reconstruct(::WidebandConditioned, ::Any) end
+
+
+"""
+    rand(rng, model)
+
+Sample from a wideband signal model.
+
+# Arguments
+* `rng::Random.AbstractRNG`
+* `model`: Wideband signal model.
+
+# Returns
+* `params`: `NamedTuple` containing the model parameters.
+* `data`: Simulated received data.
+"""
+function Base.rand(::Random.AbstractRNG, ::AbstractWidebandModel) end
 
 export
     WindowedSinc,

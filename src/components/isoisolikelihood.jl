@@ -1,4 +1,39 @@
 
+"""
+    WidebandIsoIsoLikelihood(n_samples, n_fft, delay_filter, Δx, c, fs)
+
+Collapsed likelihood for a isotropic normal source prior and an isotropic normal noise prior.
+
+# Arguments
+* `n_samples::Int`: Number of samples in received signal.
+* `n_fft::Int`: Length of the latent source signal.
+* `delay_filter::AbstractDelayFilter`: Delay filter.
+* `Δx::AbstractVector`: Inter-sensor delay in seconds.
+* `c::Real`: Propagation speed of the medium in m/s.
+* `fs::Real`: Sampling rate in Hz.
+
+Given a parameter `NamedTuple(phi[j], loglambda[j])`, this likelihood computes:
+
+```math
+\\begin{aligned}
+    &\\log p\\left(y \\mid \\phi_{1:k}, \\gamma_{1:k}, \\alpha, \\beta \\right) \\\\
+    &= -\\frac{N + \\beta}{2} \\log\\left(\\frac{\\alpha}{2} + y^{\\dagger} {(H \\Lambda H^{\\dagger} + \\mathrm{I})}^{-1} y \\right)
+       - \\frac{1}{2} \\det \\left(H^{\\dagger} \\Lambda H + \\mathrm{I}\\right)  \\\\
+    &= -\\frac{N + \\beta}{2} \\log\\left(\\frac{\\alpha}{2}
+       + y^{\\dagger} y - y^{\\dagger} H {\\left( \\Lambda^{-1} + H^{\\dagger} H \\right)}^{-1} H^{\\dagger} y \\right)
+       - \\frac{1}{2} \\det\\left(\\Lambda\\right) \\det \\left(\\Lambda^{-1} + H^{\\dagger} H \\right), \\\\
+\\end{aligned}
+```
+where
+```math
+\\Lambda = \\mathrm{diag}\\left(
+    \\exp\\left( \\text{\\textsf{loglambda[0]}} \\right),
+    \\ldots,
+    \\exp\\left( \\text{\\textsf{loglambda[k]}} \\right)
+ \\right)
+```
+(Note that \$\\gamma_j\$ in the paper is `lambda[j]` in the code, which is a bit confusing.)
+"""
 struct WidebandIsoIsoLikelihood{
     DF <: AbstractDelayFilter,
     AO <: AbstractVector,
@@ -24,19 +59,6 @@ function loglikelihood(
 
     ϕ = [param.phi            for param in params]
     λ = [exp(param.loglambda) for param in params]
-
-    # Isotropic Gaussian noise with isotropic Gaussian source prior
-    #
-    # Λ = diagm(λ)
-    #
-    # -(N + ν₀)/2 log( γ₀ + y†(HΛH† + I)⁻¹y )
-    # = -(N + ν₀)/2 log( γ₀ + y†(I - H(Λ⁻¹ + H†H)⁻¹H†)y )
-    # = -(N + ν₀)/2 log( γ₀ + y†y - y†(H(Λ⁻¹ + H†H)⁻¹H†)y )
-    #
-    # det(P⊥)^{-1/2} (α/2 + y† P⊥ y)^{-MN/2 + β}
-    #
-    # det(P⊥) = det(H†ΛH + I) = det(Λ) det(Λ⁻¹ + H†H)
-    #
 
     N = n_samples
     M = size(y_fft, 2)
@@ -78,19 +100,24 @@ end
 
 
 """
-    rand(rng, likelihood, params)
+    rand(rng, likelihood::WidebandIsoIsoLikelihood, x, phi; prior, sigma)
+
+Sample from the collapsed likelihood for the model with isotropic normal prior and isotropic normal noise.
+
+# Arguments
+* `rng::Random.AbstractRNG`: Random number generator.
+* `likelihood::WidebandIsoIsoLikelihood`: Likelihood.
+* `x::AbstractMatrix`: Latent source signals, where rows are the signals and columns are sources.
+* `phi::AbstractVector`: Direction-of-arrivals. 
+
+# Keyword Arguments
+* `prior`: Prior object used to sample `sigma` if needed (default: `nothing`).
+* `sigma`: Signal standard deviation. (Default samples from `InverseGamma(prior.alpha, prior.beta)`)
+
+# Returns
+* `y`: A simulated received signal, where the rows are the channels (sensors) and the columns are received signals.
 
 The sampling process is as follows:
-```math
-\\begin{aligned}
-    a         &\\sim \\mathcal{N}(0, \\sigma^2 \\Lambda) \\\\
-    \\epsilon &\\sim \\mathcal{N}(0, \\sigma^2 \\mathrm{I}) \\\\
-    x         &= H a \\\\
-    y         &= x + \\epsilon  
-\\end{aligned}
-```
-
-After marginalizing out the source signal magnitudes \$a\$, 
 ```math
 \\begin{aligned}
     \\epsilon &\\sim \\mathcal{N}(0, \\sigma^2 \\mathrm{I}) \\\\

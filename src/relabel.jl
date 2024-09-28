@@ -157,6 +157,30 @@ function sem_fit(
     μ, σ, w, λ
 end
 
+"""
+    relabel(rng, samples, n_mixture; n_iter, n_imh_iter, show_progress)
+
+Relabel the RJMCMC samples `samples` into `n_mixture` Gaussian mixtures according to the stochastic expectation maximization (SEM) procedure of Roodaki et al. 2014[^RBF2014]. 
+
+# Arguments
+* `rng::Random.AbstractRNG`
+* `samples::AbstractVector{<:AbstractVector{<:Real}}`: Samples subject to relabeling.
+* `n_mixture::Int`: Number of component in the Gaussian mixture. Roodaki et al. recommend setting this as the 80% or 90% percentile of model order posterior.
+
+# Keyword Arguments
+* `n_iter::Int`: Number of SEM iterations (default: `16`).
+* `n_mh_iter::Int`: Number of Metropolis-Hastings steps for sampling an a label assignment (default: `32`).
+* `show_progress::Bool`: Whether to enable progresss line (default: `true`).
+
+# Returns
+* `mixture::Distributions.MixtureModel`: The Gaussian mixture model fit over `samples`.
+* `labels::Vector{Vector{Int}}`: Labels assigned to each element of each RJCMCM sample.
+
+The length of each RJCMCMC sample in `samples` is the model order of that specific sample.
+Each element of an RJCMCM sample should be the variables that determine which label this element should be associated with.
+
+[^RBF2014]: Roodaki, Alireza, Julien Bect, and Gilles Fleury. "Relabeling and summarizing posterior distributions in signal decomposition problems when the number of components is unknown." *IEEE Transactions on Signal Processing* (2014).
+"""
 function relabel(
     rng          ::Random.AbstractRNG,
     samples      ::AbstractVector{<:AbstractVector{T}},

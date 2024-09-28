@@ -1,4 +1,21 @@
 
+
+"""
+    WidebandIsoIsoModel(n_samples, Δx, c, fs, source_prior, α, β, order_prior, n_fft)
+
+Model for wideband signal model with isotropic normal source prior and isotropic normal noise prior.
+
+# Arguments
+* `n_samples::Int`: Number of samples of the received signal.
+* `Δx::AbstractVector`: Inter-sensor delay of the array in seconds.
+* `c::Real`: Propagation speed of the medium in m/s.
+* `fs::Real`: Sampling frequency in Hz.
+* `source_prior::UnivariateDistribution`: Prior on the SNR parameter (\$\\gamma_j\$ in the paper) of the sources.
+* `α::Real`: \$\\alpha\$ hyperparameter of the inerse-gamma prior on the signal standard deviation (\$\\sigma\$ in the paper; default: 0)
+* `β::Real` \$\\beta\$ hyperparameter of the inerse-gamma prior on the signal standard deviation (\$\\sigma\$ in the paper; default: 0)
+* `order_prior::DiscreteDistribution`: Prior on the model order (\$k\$ in the paper; default: `NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1))`)
+* `n_fft::Int`: Length of the source signals. (default: `n_samples*2`)
+"""
 struct WidebandIsoIsoModel{
     Prior <: WidebandIsoSourcePrior,
     Like  <: WidebandIsoIsoLikelihood
@@ -7,6 +24,11 @@ struct WidebandIsoIsoModel{
     likelihood::Like
 end
 
+"""
+    WidebandIsoIsoParam(phi, loglambda)
+
+Local parameter of `WidebandIsoIsoModel`.
+"""
 struct WidebandIsoIsoParam{T <: Real}
     phi::T
     loglambda::T

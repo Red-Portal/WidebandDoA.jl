@@ -1,19 +1,35 @@
 
+"""
+    inter_sensor_delay(ϕ, Δx, c)
+
+Compute the inter-sensor delay matrix \$D \\in \\mathbb{R}^{M \\times K}\$ in seconds for a linear array, where `M = length(isd)` is the number of sensors on the array, and `K = length(isd)` is the number of targets.
+The matrix is computed as follows:
+```math
+{[D]}_{m,k} = \\frac{\\Delta x[m] \\, \\sin(\\phi[k])}{c}
+```
+
+# Arguments
+* `ϕ::AbstractVector`: Vector of DoAs in radian. 
+* `Δx::AbstractVector`: Vector of inter-sensor delay of the array.
+* `c`: Propagation speed of the medium.
+
+# Returns
+* `delays`: Matrix containing the delays in seconds. Each row correspond to sensor, and each column correspond to the source.
+"""
 function inter_sensor_delay(ϕ::AbstractVector, Δx::AbstractVector, c)
     Tullio.@tullio threads=false τ[m,k] := Δx[m]*sin(ϕ[k])/c
 end
 
 """
-    WindowedSinc(n_fft)
+    WindowedSinc(n_fft) <: AbstractDelayFilter
 
-S. -C. Pei and Y. -C. Lai, "Closed Form Variable Fractional Time Delay Using FFT," 
-in IEEE Signal Processing Letters, 2012.
-    
-S. -C. Pei and Y. -C. Lai, 
-"Closed form variable fractional delay using FFT with transition band trade-off," 
-IEEE International Symposium on Circuits and Systems (ISCAS), 2014.
+Closed-form fractional delay filter by Pei and Lai[^PL2012][^PL2014]
 
-Note: Technically speaking this filter is now overkill.
+# Arguments
+* `n_fft::Int`: Number of taps of the filter.
+
+[^PL2012]: S. -C. Pei and Y. -C. Lai, "Closed Form Variable Fractional Time Delay Using FFT," *IEEE Signal Processing Letters*, 2012.
+[^PL2014]: S. -C. Pei and Y. -C. Lai, "Closed form variable fractional delay using FFT with transition band trade-off," In *Proceedings of the IEEE International Symposium on Circuits and Systems* (ISCAS), 2014.
 """
 struct WindowedSinc <: AbstractDelayFilter
     n_fft::Int
@@ -48,31 +64,6 @@ function array_delay(filter::WindowedSinc, Δn::Matrix{T})  where {T<:Real}
         end
     end
     H
-end
-
-
-struct WindowedPaddedSinc <: AbstractDelayFilter
-    filt::WindowedSinc
-    n_fft::Int
-end
-
-function array_delay(filter::WindowedPaddedSinc, Δn::Matrix{T})  where {T<:Real}
-    (; filt, n_fft) = filter
-    n_sensors, n_sources = size(Δn)
-
-    # Doesn't work. Sinc is not circular
-    
-    @tullio h[n,m,k] = begin
-        if n ≤ n_tap
-            d = Δn[m,k]
-            #w = cos(π*(n - 1 - d)/n_fft)/sinc((n - 1 - d)/n_fft)
-            fc = 0.3
-            sinc(2*fc*mod(n-1+d, n_tap))*fc
-        else
-            0
-        end
-    end
-    fft(h, 1)
 end
 
 struct ComplexShift <: AbstractDelayFilter

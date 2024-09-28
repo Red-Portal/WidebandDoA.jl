@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.45
+# v0.19.46
 
 using Markdown
 using InteractiveUtils
@@ -30,15 +30,15 @@ begin
 	include("common.jl")
 
 	rng = Random.default_rng()
-	ϕ   = [-π/3, 0.0, π/3,]
-	snr = 10.0
+	ϕ   = [30., 45, -30]/180*π
+	snr = -4.0
 
 	N     = 64
     n_dft = 2*N
-	fs    = 2000.
+	fs    = 3000.
 	model = construct_default_model(N, fs)
 	c, Δx = model.likelihood.c, model.likelihood.Δx
-	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, [100, 100, 100.], [500, 500, 500], fs, 1.0, Δx, c; visualize=true)
+	y, _  = simulate_signal(rng, N, n_dft, ϕ, snr, [100, 100, 100.], [1000, 1000, 1000], fs, 1.0, Δx, c; visualize=true)
 	#y    /= std(y)
 	cond  = WidebandConditioned(model, y)
 end
@@ -92,7 +92,7 @@ end
 
 # ╔═╡ 7da18e2b-2303-4abe-9a78-3a960c562dc8
 begin
-    n_samples = 10000
+    n_samples = 100000
     n_anneal  = 4
 
     #path  = ArithmeticPath(n_anneal)
@@ -142,7 +142,9 @@ end
 
 # ╔═╡ 05e2cf48-8b23-4c94-8146-3f8fa4ac8def
 begin
-    flat = vcat(samples[n_samples ÷ 10:end]...)
+	bms = filter(sample -> length(sample) == length(ϕ), samples[n_samples ÷ 10:end])
+    flat = vcat(bms...)
+	
     Plots.histogram([f.phi for f in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior")
     Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 end
@@ -161,6 +163,10 @@ begin
 	Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 end
 
+# ╔═╡ ed499fb4-2f72-4b27-b731-b14bccb698a5
+mixture.components
+
+
 # ╔═╡ Cell order:
 # ╠═71585db6-d5de-11ee-2f91-6306270cfdbb
 # ╠═fd1c1453-8293-4371-9296-8b3b8baad279
@@ -175,3 +181,4 @@ end
 # ╠═05e2cf48-8b23-4c94-8146-3f8fa4ac8def
 # ╠═f20198ec-c064-4571-a983-83aab0e96eea
 # ╠═bb716eb6-ecb2-4ce3-b76c-8f575d159ea4
+# ╠═ed499fb4-2f72-4b27-b731-b14bccb698a5

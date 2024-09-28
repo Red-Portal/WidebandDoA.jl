@@ -1,4 +1,15 @@
 
+
+"""
+    WidebandData(y, y_fft, y_power)
+
+Received signal with pre-processing.
+
+# Arguments
+* `y`: Received signal, where the rows are the channels (sersors), while the columns are the signals.
+* `y_fft`: Received signal after applying a channel-wise FFT.
+* `y_power`: Power of the received signal.
+"""
 struct WidebandData{
     Y  <: AbstractMatrix{<:Real},
     YF <: AbstractMatrix{<:Complex},
@@ -9,6 +20,15 @@ struct WidebandData{
     y_power::YP
 end
 
+"""
+    WidebandConditioned(model, y)
+
+`model` conditioned on `y`.
+
+# Arguments
+* `model::AbstractWidebandModel`: Signal model.
+* `y::AbstractMatrix`: Received data, where the rows are the channels (sersors), while the columns are the signals.
+"""
 struct WidebandConditioned{
     M <: AbstractWidebandModel,
     D <: WidebandData
