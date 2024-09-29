@@ -251,7 +251,7 @@ for (sample, labs) in zip(samples_thinned, labels_thinned)
         push!(x_means[label],   xj_mean)
     end
 end
-labeled_samples
+nothing
 ```
 
 Now that sampling and relabeling is done, let's visualize the posterior samples against the MMSE estimates (posterior mean)
