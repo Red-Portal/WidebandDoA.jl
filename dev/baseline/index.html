@@ -28,7 +28,7 @@ x   = mapslices(xi -&gt; DSP.Filters.filt(bpf, xi), ϵ; dims=1)
 nothing</code></pre><p>GLRT uses the following key parameters:</p><pre><code class="language-julia hljs">k_max   = 4    # Maximum number of targets
 q       = 0.1  # False discovery rate
 nothing</code></pre><p>The simulation range is set as follows:</p><pre><code class="language-julia hljs">snrs     = -8:2:6
-n_trials = 10
+n_trials = 30
 nothing</code></pre><p>Let&#39;s run the simulation.</p><pre><code class="language-julia hljs">filter   = WidebandDoA.WindowedSinc(N)
 pcorrect = map(snrs) do snr
     mean(1:n_trials) do _
@@ -52,10 +52,10 @@ pcorrect = map(snrs) do snr
         k == length(ϕ)
     end
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">8-element Vector{Float64}:
- 0.0
+ 0.06666666666666667
  0.7
  1.0
- 1.0
+ 0.9666666666666667
  1.0
  1.0
  1.0
@@ -63,4 +63,4 @@ end</code></pre><pre class="documenter-example-output"><code class="nohighlight 
 
 Plots.plot(snrs, pcorrect, xlabel=&quot;SNR&quot;, ylabel=&quot;Prob. of Detection&quot;, ylims=[0, 1])
 savefig(&quot;baseline.svg&quot;)
-nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../baseline.svg" alt/></p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-CBMH2007"><a class="tag is-link" href="#citeref-CBMH2007">CBMH2007</a>Chung, P. J., Bohme, J. F., Mecklenbrauker, C. F., &amp; Hero, A. O. (2007). Detection of the number of signals using the Benjamini-Hochberg procedure. IEEE Transactions on Signal Processing, 55(6), 2497-2508.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../demonstration/">« Demonstration</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Sunday 29 September 2024 22:50">Sunday 29 September 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">GKS: cannot open display - headless operation mode active</code></pre><p><img src="../baseline.svg" alt/></p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-CBMH2007"><a class="tag is-link" href="#citeref-CBMH2007">CBMH2007</a>Chung, P. J., Bohme, J. F., Mecklenbrauker, C. F., &amp; Hero, A. O. (2007). Detection of the number of signals using the Benjamini-Hochberg procedure. IEEE Transactions on Signal Processing, 55(6), 2497-2508.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../demonstration/">« Demonstration</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Sunday 29 September 2024 23:50">Sunday 29 September 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
