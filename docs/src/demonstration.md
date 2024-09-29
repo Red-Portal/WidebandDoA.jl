@@ -255,7 +255,7 @@ nothing
 ```
 
 Now that sampling and relabeling is done, let's visualize the posterior samples against the MMSE estimates (posterior mean)
-```@example 
+```@example demo
 x_mmse = mean.(x_samples)
 
 plts = map(1:k_mixture) do j
