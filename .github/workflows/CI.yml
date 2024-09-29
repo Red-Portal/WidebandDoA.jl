@@ -62,16 +62,10 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Pkg
+          Pkg.develop("ReversibleJump")
           Pkg.develop(PackageSpec(path=pwd()))
           Pkg.instantiate()
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Run doctests
-        shell: julia --project=docs --color=yes {0}
-        run: |
-          using Documenter: DocMeta, doctest
-          using WidebandDoA
-          DocMeta.setdocmeta!(WidebandDoA, :DocTestSetup, :(using WidebandDoA); recursive=true)
-          doctest(WidebandDoA)
