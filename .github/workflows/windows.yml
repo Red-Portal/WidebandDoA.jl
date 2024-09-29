@@ -21,8 +21,7 @@ jobs:
         version:
           - '1.10'
         os:
-          - ubuntu-latest
-          - macOS-latest
+          - windows-latest
         arch:
           - x64
 
@@ -41,30 +40,3 @@ jobs:
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
-  docs:
-    name: Documentation
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      statuses: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v1
-        with:
-          version: '1'
-      - name: Configure test unregistered dependencies
-        shell: julia --project=. --color=yes {0}
-        run: |
-          using Pkg
-          Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git")
-      - name: Configure doc environment
-        shell: julia --project=docs --color=yes {0}
-        run: |
-          using Pkg
-          Pkg.develop(PackageSpec(path=pwd()))
-          Pkg.develop("ReversibleJump")
-          Pkg.instantiate()
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: julia-actions/julia-docdeploy@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
