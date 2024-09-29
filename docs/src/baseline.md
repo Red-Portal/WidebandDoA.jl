@@ -83,7 +83,7 @@ nothing
 The simulation range is set as follows:
 ```@example baseline
 snrs     = -8:2:6
-n_trials = 10
+n_trials = 30
 nothing
 ```
 

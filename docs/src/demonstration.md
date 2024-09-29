@@ -83,11 +83,13 @@ order_prior  = truncated(NegativeBinomial(1/2 + 0.1, 0.1/(0.1 + 1)), 0, M-1)
 model        = WidebandDoA.WidebandIsoIsoModel(
     N, Δx, c, fs, source_prior, alpha, beta; order_prior
 )
+nothing
 ```
 
 The model can be conditioned on the data as follows:
 ```@example demo
 cond  = WidebandConditioned(model, y)
+nothing
 ```
 
 We are now ready to infer the posterior for this model.
@@ -101,10 +103,12 @@ using ReversibleJump
 
 prop = UniformNormalLocalProposal(0.0, 2.0)
 jump = IndepJumpProposal(prop)
+nothing
 ```
 For the *update move*, we will use slice sampling[^N2003] with the stepping out procedure:
 ```@example demo
 mcmc = SliceSteppingOut([2.0, 2.0])
+nothing
 ```
 
 [^N2003]: Neal, Radford M. "Slice sampling." The annals of statistics 31.3 (2003): 705-767.
@@ -112,6 +116,7 @@ mcmc = SliceSteppingOut([2.0, 2.0])
 The RJMCMC algorithm we use is the non-reversible jump algorithm by Gagnon and Doucet[^GD2020].
 ```@example demo
 rjmcmc = ReversibleJump.NonReversibleJumpMCMC(jump, mcmc; jump_rate=0.9)
+nothing
 ```
 [^GD2020]: Gagnon, Philippe, and Arnaud Doucet. "Nonreversible jump algorithms for Bayesian nested model selection." Journal of Computational and Graphical Statistics 30.2 (2020): 312-323.
 
@@ -206,6 +211,7 @@ Plots.stephist([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/
 Plots.plot!(mixture, label="Component")
 Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 savefig("doa_relabel_hist.svg")
+nothing
 ```
 ![](doa_relabel_hist.svg)
 
@@ -231,9 +237,9 @@ for (sample, labs) in zip(samples_thinned, labels_thinned)
     x_sample = rand(rng, dist_x) # Conditional posterior sample
     x_mean   = mean(dist_x) # Conditional posterior mean
 
-    k         = length(sample)
+    kj        = length(sample)
     total_len = length(x_sample)
-    blocksize = total_len ÷ k
+    blocksize = total_len ÷ kj
 
     # Labeling the conditional posterior mean and sample
     for (idx, label) in enumerate(labs)
@@ -261,12 +267,13 @@ x_mmse = mean.(x_samples)
 plts = map(1:k_mixture) do j
     p = Plots.plot(x_mmse[j], linecolor=:blue, label="MMSE", xlabel="Sample index")
     for x_sample in x_samples[j]
-        Plots.plot!(p, x_sample, linecolor=:blue, alpha=0.5, linewidth=0.1, label=nothing)
+        Plots.plot!(p, x_sample, linecolor=:blue, alpha=0.5, linewidth=0.2, label=nothing)
     end
     p
 end
 Plots.plot(plts..., layout = (4, 1))
 savefig("recon_samples.svg")
+nothing
 ```
 ![](recon_samples.svg)
 
@@ -275,5 +282,6 @@ Finally, let's compare the results against the ground truth `x`.
 Plots.plot( x_mmse, layout=(4,1), label="MMSE", xlabel="Sample Index")
 Plots.plot!(x,      layout=(4,1), label="True", xlabel="Sample Index")
 savefig("recon_mmse_comparison.svg")
+nothing
 ```
 ![](recon_mmse_comparison.svg)
