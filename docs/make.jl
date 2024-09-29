@@ -1,7 +1,11 @@
+
+using Pkg
+
 using WidebandDoA
 using Documenter
 
 DocMeta.setdocmeta!(WidebandDoA, :DocTestSetup, :(using WidebandDoA); recursive=true)
+
 
 makedocs(;
     modules=[WidebandDoA],
