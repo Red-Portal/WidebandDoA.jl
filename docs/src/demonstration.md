@@ -29,12 +29,13 @@ nothing
 For simulating the signals, let's use a utility function we used for the experiments.
 The length of the simulated signal will be `N = 128`
 ```@example demo
+using StableRNGs
 using Random
 
 N = 256
 
 include("../../scripts/common.jl")
-rng   = Random.default_rng()
+rng   = StableRNG(123)
 y, x  = simulate_signal(
     rng, N, N*8, ϕ, snr, f_begin, f_end, fs, 1.0, Δx, c; visualize=false
 )
@@ -119,6 +120,7 @@ n_samples = 4_000
 initial_params = WidebandDoA.WidebandIsoIsoParam{Float64}[]
 initial_order  = 0
 samples, stats = ReversibleJump.sample(
+    rng,
     rjmcmc,
     cond,
     n_samples,
@@ -188,7 +190,7 @@ Roodaki *et al.* recommend the 80% or 90% upper percentile of the posterior:
 k_mixture = quantile([stat.order for stat in stats], 0.9) |> Base.Fix1(round, Int)
 ϕ_post    = [[target.phi for target in sample] for sample in burned]
 mixture, labels = WidebandDoA.relabel(
-    Random.default_rng(), ϕ_post, k_mixture; show_progress=false
+    rng, ϕ_post, k_mixture; show_progress=false
 )
 mixture
 ```
@@ -224,7 +226,7 @@ labels_thinned  = labels[1:n_thin:end]
 
 for (sample, labs) in zip(samples_thinned, labels_thinned)
     dist_x   = WidebandDoA.reconstruct(cond, sample)
-    x_sample = rand(dist_x) # Conditional posterior sample
+    x_sample = rand(rng, dist_x) # Conditional posterior sample
     x_mean   = mean(dist_x) # Conditional posterior mean
 
     k         = length(sample)
