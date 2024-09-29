@@ -29,13 +29,15 @@ nothing
 For simulating the signals, let's use a utility function we used for the experiments.
 The length of the simulated signal will be `N = 128`
 ```@example demo
-using StableRNGs
-using Random
+using Random, Random123
+
+seed = (0x97dcb950eaebcfba, 0x741d36b68bef6415)
+rng  = Random123.Philox4x(UInt64, seed, 8)
+Random123.set_counter!(rng, 1)
 
 N = 256
 
 include("../../scripts/common.jl")
-rng   = StableRNG(123)
 y, x  = simulate_signal(
     rng, N, N*8, ϕ, snr, f_begin, f_end, fs, 1.0, Δx, c; visualize=false
 )

@@ -12,13 +12,14 @@ using Accessors
 using FFTW
 using FillArrays
 using LinearAlgebra
+using MKL
 using NLopt
 using Optim, LineSearches
 using Peaks
 using Random
 using SpecialFunctions
-using StatsFuns
 using StatsBase
+using StatsFuns
 using Tullio
 
 include("../../scripts/baselines/common.jl")
@@ -31,7 +32,7 @@ nothing
 Here is the system setup.
 
 ```@example baseline
-n_fft  = 32 # Number of requency bins (J in the original paper)
+n_fft  = 64 # Number of requency bins (J in the original paper)
 n_snap = 10 # Number of snapshots (K in the original paper) 
 
 fs      = 2000         # Sampling frequency [Hz]
@@ -56,18 +57,19 @@ nothing
 
 We now generate the source signals by band-limiting white Gaussian noise. 
 ```@example baseline
-using StableRNGs
 using DSP
+using Random123
 
-rng = StableRNG(1)
+seed = (0x97dcb950eaebcfba, 0x741d36b68bef6415)
+rng  = Random123.Philox4x(UInt64, seed, 8)
+Random123.set_counter!(rng, 1)
 
 ϵ   = randn(rng, N, length(ϕ))
-Δf  = f0 - (17/32*f0)
 bpf = DSP.Filters.digitalfilter(
     DSP.Filters.Bandpass(17/32*f0, f0, fs=fs), 
     DSP.Filters.Butterworth(8)
 )
-x    = mapslices(xi -> DSP.Filters.filt(bpf, xi), ϵ; dims=1)
+x   = mapslices(xi -> DSP.Filters.filt(bpf, xi), ϵ; dims=1)
 nothing
 ```
 
@@ -80,15 +82,16 @@ nothing
 
 The simulation range is set as follows:
 ```@example baseline
-snrs     = -10:2:10
+snrs     = -8:2:6
 n_trials = 10
 nothing
 ```
 
-Let's now run the simulation.
+Let's run the simulation.
 ```@example baseline
 filter   = WidebandDoA.WindowedSinc(N)
 pcorrect = map(snrs) do snr
+    prog = Progress(n_trials)
     mean(1:n_trials) do _
         σ2   = 10^(-snr/10)
         like = WidebandIsoIsoLikelihood(N, 4*N, filter, Δx, c, fs)
@@ -99,7 +102,7 @@ pcorrect = map(snrs) do snr
 
         # The original paper only states that they use J = 10 frequency bins.
         # We pick 10 bins that sufficiently cover the target frequency f0.
-        idx_sel = 4:13
+        idx_sel = 13:22
         R_sel   = R[:,:,idx_sel]
         f_sel   = f_range[idx_sel]
         Y_sel   = Y[:,:,idx_sel]
@@ -107,6 +110,7 @@ pcorrect = map(snrs) do snr
         k, _ = likeratiotest(
             rng, Y_sel, R_sel, q, k_max, n_snap, f_sel, config; visualize=false
         )
+        next!(prog)
         k == length(ϕ)
     end
 end
