@@ -91,7 +91,6 @@ Let's run the simulation.
 ```@example baseline
 filter   = WidebandDoA.WindowedSinc(N)
 pcorrect = map(snrs) do snr
-    prog = Progress(n_trials)
     mean(1:n_trials) do _
         σ2   = 10^(-snr/10)
         like = WidebandIsoIsoLikelihood(N, 4*N, filter, Δx, c, fs)
@@ -110,7 +109,6 @@ pcorrect = map(snrs) do snr
         k, _ = likeratiotest(
             rng, Y_sel, R_sel, q, k_max, n_snap, f_sel, config; visualize=false
         )
-        next!(prog)
         k == length(ϕ)
     end
 end
