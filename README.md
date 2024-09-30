@@ -32,6 +32,20 @@ Pkg.test("WidebandDoA")
 ```
 
 
+## Demonstration
+We provide a comprehensive demonstration of the package in the [documentation](https://krkim.me/WidebandDoA.jl/dev/demonstration/).
+For instance, for signals generated from `k = 4` sources with the following angle-frequency spectrum:
+
+![](https://github.com/Red-Portal/WidebandDoA.jl/blob/gh-pages/dev/angle_frequency_spectrum_plot.svg) 
+
+We show how to obtain estimaties of the model order through our Bayesian model:
+![](https://github.com/Red-Portal/WidebandDoA.jl/blob/gh-pages/dev/model_order_hist.svg)
+
+and the direction-of-arrvials:
+![](https://github.com/Red-Portal/WidebandDoA.jl/blob/gh-pages/dev/doa_hist.svg)
+
+One can also reconstruct the latent source signals as follows:
+![](https://github.com/Red-Portal/WidebandDoA.jl/blob/gh-pages/dev/recon_mmse_comparison.svg)
 
 
 

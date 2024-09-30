@@ -7,6 +7,8 @@ We will try to follow the experimental setup in the paper as closely as possible
 
 [^CBMH2007]: Chung, P. J., Bohme, J. F., Mecklenbrauker, C. F., & Hero, A. O. (2007). Detection of the number of signals using the Benjamini-Hochberg procedure. IEEE Transactions on Signal Processing, 55(6), 2497-2508.
 
+## System Setup
+
 ```@setup baseline
 using Accessors
 using FFTW
@@ -112,7 +114,10 @@ pcorrect = map(snrs) do snr
         k == length(ϕ)
     end
 end
+nothing
 ```
+
+## Result
 
 ```@example baseline
 using Plots

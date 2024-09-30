@@ -1,12 +1,12 @@
 
 # Demonstration
 
-## Setup
+## System Setup
 
 We demonstrate the use of the package.
 
 First, let's setup the array geometry.
-We will consider a system with a uniform linear array (ULA) with `M = 20` sensors and a spacing of 0.5 m, a sampling frequency of `fs = 30000`Hz, where the medium has a propagation speed of `c = 1500` m/s:
+We will consider a system with a uniform linear array (ULA) with `M = 20` sensors and a spacing of 0.5 m, a sampling frequency of `fs = 3000`Hz, where the medium has a propagation speed of `c = 1500` m/s:
 
 ```@example demo
 M  = 20
@@ -27,7 +27,8 @@ nothing
 ```
 
 For simulating the signals, let's use a utility function we used for the experiments.
-The length of the simulated signal will be `N = 128`
+The length of the simulated signal will be `N = 256`.
+This corresponds to using `S = 8` snapshots in the paper.
 ```@example demo
 using Random, Random123
 
@@ -44,8 +45,8 @@ y, x  = simulate_signal(
 y
 ```
 
-We can visualize the simulated signal by beamformer-based power estimators.
-For instance, applying the Capon spectral estimator, more commonly known as minimum-variance distortionless response, or MVDR for short:
+We can visualize the simulated signal through beamforming.
+Consider the Capon spectral estimator, more commonly known as minimum-variance distortionless response, or MVDR for short :
 ```@example demo
 using Tullio
 using Plots
@@ -67,15 +68,15 @@ Plots.vline!(ϕ, label="True DoAs", linecolor=:red)
 savefig("angle_frequency_spectrum_plot.svg")
 nothing
 ```
-Here is the angle-frequency plot: 
+This yields the angle-frequency spectrum: 
 ![](angle_frequency_spectrum_plot.svg)
 
-Although the high SNR signal at 45 degress is obscuring other signals, we can see that the signal were correctly simualted as we specified.
+We can see that the signals were correctly simulated as we specified.
 
 
 ## Creating the Bayesian Model
-Now, let's create the Bayesian model.
-We will use a non-informating prior on the source SNRs ($\gamma$ in the paper), the truncated negative-binomial prior on the model order, a Jeffrey's scale prior on the signal power ($\alpha = \beta = 0$) as stated in the paper:
+Now, let's construct the Bayesian model.
+We will use a non-informative inverse-gamma prior on the source SNRs ($\gamma$ in the paper), a truncated negative-binomial prior on the model order ($k$), a Jeffrey's scale prior on the signal power ($\sigma^2$) as stated in the paper:
 ```@example demo
 alpha, beta  = 0, 0
 source_prior = InverseGamma(0.01, 0.01)
@@ -95,9 +96,9 @@ nothing
 We are now ready to infer the posterior for this model.
 
 ## Inference with RJMCMC
-For inference, we use [`ReversibleJump`](https://github.com/Red-Portal/ReversibleJump.jl) package, which is the inference counterpart of this package.
+For inference, we will use the [`ReversibleJump`](https://github.com/Red-Portal/ReversibleJump.jl) package, which is the inference counterpart of this package.
 
-We will use independent jump proposals with the uniform-log-normal auxiliary proposal distributions ($q(\gamma)$, $q(\gamma)$ in the paper) stated in the paper:
+We use independent jump proposals with the uniform-log-normal auxiliary proposal distributions ($q(\gamma)$, $q(\gamma)$ in the paper) as done in the paper:
 ```@example demo
 using ReversibleJump
 
@@ -105,7 +106,7 @@ prop = UniformNormalLocalProposal(0.0, 2.0)
 jump = IndepJumpProposal(prop)
 nothing
 ```
-For the *update move*, we will use slice sampling[^N2003] with the stepping out procedure:
+For the *update move*, we will use slice sampling[^N2003] with the stepping-out procedure:
 ```@example demo
 mcmc = SliceSteppingOut([2.0, 2.0])
 nothing
@@ -139,32 +140,29 @@ samples
 ```
 
 ## Signal Detection
-Let's inspect the Markov chain.
+Detection can be performed by analyzing the posterior of the model order ($k$).
 
-First, we will look at the posterior of the model order:
+Here is the trace of the model order:
 ```@example demo
 Plots.plot([stat.order for stat in stats],  xlabel="RJMCMC Iteration",  ylabel="Model order")
 savefig("model_order_trace.svg")
+nothing
+```
+![](model_order_trace.svg)
 
+And the histogram:
+```@example demo
 Plots.histogram([stat.order for stat in stats], xlabel="order", normed=true)
 savefig("model_order_hist.svg")
 nothing
 ```
-
-Here is the trace of the model order:
-
-![](model_order_trace.svg)
-
-Here is the histogram of the model order:
-
 ![](model_order_hist.svg)
 
-Point estimates for the model order can now be obtained from the posterior.
+From the posterior, we can obtain point estimates of the model order $k$.
 In the paper, we use the median.
-But using the posterior mode yields similar performs except for a narrow performance region where the model transitions from now working very well to working very well. 
 
 ## DoA Estimation
-Now, let's look at the DoA estimates.
+Now, let's estimate the DoAs.
 
 For this, we will discard the first 10% of the samples and only use the remaining samples.
 ```@example demo
@@ -175,19 +173,18 @@ burned = samples[n_samples ÷ 10:end]
 ```@example demo
 flat = vcat(burned...)
 ```
-Instead, one can also select the samples that have a specific model order.
-This corresponds to conditioning on the model (order) we selected, which is *Bayesian model selection*.
+On the other hand, *Bayesian model selection* corresponds to selecting the samples that have a specific model order.
 	
 Here is the marginal posterior of the DoAs:
 ```@example demo
-Plots.histogram([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)")
+Plots.histogram([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior", ylabel="Density")
 Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 savefig("doa_hist.svg")
 nothing
 ```
 ![](doa_hist.svg)
 
-Unfortunately, it is hard to construct a histogram of the DoA posterior samples for each source.
+Unfortunately, this does not yield the DoA posterior corresponding to each *source*.
 For this, we turn to the relabeling algorithm by Roodaki *et al.*[^RBF2014].
 This algorithm fits a Gaussian mixture model on the histogram above.
 It also generates labels for each local variable, so that we can label variable other than just the DoAs.
@@ -203,25 +200,34 @@ mixture
 ```
 [^RBF2014]: Roodaki, Alireza, Julien Bect, and Gilles Fleury. "Relabeling and summarizing posterior distributions in signal decomposition problems when the number of components is unknown." *IEEE Transactions on Signal Processing* (2014).
 
-We can compare the components with the marginal mixture:
+Let's check that the Gaussian mixture approximation is accurate.
+This can be done by comparing the marginal density of the mixture against the histogram:
 ```@example demo
 using StatsPlots
 
-Plots.stephist([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior", fill=true)
-Plots.plot!(mixture, label="Component")
-Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
-savefig("doa_relabel_hist.svg")
+Plots.stephist([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", ylabel="Density", label="Posterior", fill=true)
+Plots.plot!(range(-π/2,π/2; length=1024), Base.Fix1(pdf, mixture), label="Mixture Approximation", linewidth=2)
+savefig("doa_relabel_density.svg")
 nothing
 ```
-![](doa_relabel_hist.svg)
+![](doa_relabel_density.svg)
+
+The DoA posterior of each source is then represented by each component of the mixture:
+```@example demo
+Plots.plot(mixture, label="Component", fill=true)
+Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
+savefig("doa_relabel_comp.svg")
+nothing
+```
+![](doa_relabel_comp.svg)
 
 
 ## Reconstruction
+Finally, we will demonstrate reconstruction.
+Unfortunately, the API for reconstruction is a little less ironed-out, but it is functional.
 
-We will finally demonstrate reconstruction.
-Unforutnately, the API for reconstruction is a little less ironed-out, but it is usable.
-In addition, we have to use the labels generated by the relabeling procedure and label the RJMCMC samples.
-Here, we will sample from the conditional posterior conditional on each RJMCMC sample and relabel the samples at the same time.
+For this, we have to use the labels generated by the relabeling procedure.
+Here, for each RJMCMC sample, we will sample from the conditional posterior conditional and then relabel the signal segments to their corresponding source.
 We also thin the samples by a factor `n_thin = 100` to speed up things and reduce memory consumption.
 ```@example demo
 x_samples = [Vector{Float64}[] for j in 1:k_mixture]
@@ -260,7 +266,8 @@ end
 nothing
 ```
 
-Now that sampling and relabeling is done, let's visualize the posterior samples against the MMSE estimates (posterior mean)
+Now that sampling and relabeling is done, we can visualize the posterior samples against with the minimum mean-squared error (MMSE) estimates (posterior mean).
+The variability of the posterior samples represent the posterior uncertainty:
 ```@example demo
 x_mmse = mean.(x_samples)
 
@@ -277,7 +284,7 @@ nothing
 ```
 ![](recon_samples.svg)
 
-Finally, let's compare the results against the ground truth `x`.
+Finally, let's compare the MMSE against the ground truth `x`.
 ```@example demo
 Plots.plot( x_mmse, layout=(4,1), label="MMSE", xlabel="Sample Index")
 Plots.plot!(x,      layout=(4,1), label="True", xlabel="Sample Index")
