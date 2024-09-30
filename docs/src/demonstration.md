@@ -20,9 +20,9 @@ For the target sources, we will generate `k = 4` targets, with varying bandwidth
 ```@example demo
 k       = 4
 ϕ       = [ -60,  -15,  30,  45]/180*π # True direction-of-arrivals
-f_begin = [  10,  100, 500, 800]       # Source signal starting frequency
-f_end   = [1000, 1500,1000, 900]       # Source signal ending frequency
-snr     = [  -6,   -4,   0,   4]       # Varying SNRs in dB
+f_begin = [  10,  100, 500, 800]       # Source signal starting frequencies
+f_end   = [1000, 1500,1000, 900]       # Source signal ending frequencies
+snr     = [  -6,   -4,   0,   4]       # Source signal SNRs in dB
 nothing
 ```
 
