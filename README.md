@@ -5,7 +5,7 @@
 # WidebandDoA
 
 This repository provides the code to reproduce the paper:
-> Bayesian Wideband Direction-of-Arrival Estimation with RJMCMC
+> Fully Bayesian Wideband Direction-of-Arrival Estimation with RJMCMC
 
 ## Installation
 
