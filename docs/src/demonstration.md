@@ -214,7 +214,7 @@ nothing
 
 The DoA posterior of each source is then represented by each component of the mixture:
 ```@example demo
-Plots.plot(mixture, label="Component", fill=true)
+Plots.plot(mixture, xlims=[-π/2, π/2], label="Component", fill=true)
 Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 savefig("doa_relabel_comp.svg")
 nothing
