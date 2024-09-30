@@ -20,8 +20,8 @@ For the target sources, we will generate `k = 4` targets, with varying bandwidth
 ```@example demo
 k       = 4
 ϕ       = [ -60,  -15,  30,  45]/180*π # True direction-of-arrivals
-f_begin = [  10,  100,  50, 800]       # Source signal starting frequency
-f_end   = [1000, 1500, 500, 900]       # Source signal ending frequency
+f_begin = [  10,  100, 500, 800]       # Source signal starting frequency
+f_end   = [1000, 1500,1000, 900]       # Source signal ending frequency
 snr     = [  -6,   -4,   0,   4]       # Varying SNRs in dB
 nothing
 ```
@@ -177,7 +177,7 @@ On the other hand, *Bayesian model selection* corresponds to selecting the sampl
 	
 Here is the marginal posterior of the DoAs:
 ```@example demo
-Plots.histogram([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior", ylabel="Density")
+Plots.histogram([θ.phi for θ in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", label="Posterior", ylabel="Density")
 Plots.vline!(ϕ, label="True", color=:red, linestyle=:dash)
 savefig("doa_hist.svg")
 nothing
@@ -205,7 +205,7 @@ This can be done by comparing the marginal density of the mixture against the hi
 ```@example demo
 using StatsPlots
 
-Plots.stephist([θ.phi for θ in flat], normed=true, bins=128, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", ylabel="Density", label="Posterior", fill=true)
+Plots.stephist([θ.phi for θ in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel="DoA (ϕ)", ylabel="Density", label="Posterior", fill=true)
 Plots.plot!(range(-π/2,π/2; length=1024), Base.Fix1(pdf, mixture), label="Mixture Approximation", linewidth=2)
 savefig("doa_relabel_density.svg")
 nothing
@@ -241,7 +241,7 @@ labels_thinned  = labels[1:n_thin:end]
 for (sample, labs) in zip(samples_thinned, labels_thinned)
     dist_x   = WidebandDoA.reconstruct(cond, sample)
     x_sample = rand(rng, dist_x) # Conditional posterior sample
-    x_mean   = mean(dist_x) # Conditional posterior mean
+    x_mean   = mean(dist_x)      # Conditional posterior mean
 
     kj        = length(sample)
     total_len = length(x_sample)
@@ -250,7 +250,7 @@ for (sample, labs) in zip(samples_thinned, labels_thinned)
     # Labeling the conditional posterior mean and sample
     for (idx, label) in enumerate(labs)
         if label > k_mixture
-            # A label of k_mixture + 1 corresponds to the clutter
+            # A label of k_mixture + 1 corresponds to clutter
             continue
         end
 

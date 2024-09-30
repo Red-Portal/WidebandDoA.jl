@@ -122,8 +122,11 @@ nothing
 ```@example baseline
 using Plots
 
-Plots.plot(snrs, pcorrect, xlabel="SNR", ylabel="Prob. of Detection", ylims=[0, 1])
+Plots.plot(snrs, pcorrect, xlabel="SNR", ylabel="Prob. of Correct Detection", ylims=[0, 1])
 savefig("baseline.svg")
 nothing
 ```
 ![](baseline.svg)
+
+Compare this against Fig. 4 in the original paper[^CBMH2007].
+We can see the results are very close: the probability of correct detection converges to a 100% around -3 dB.
