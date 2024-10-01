@@ -7,9 +7,9 @@ Model for wideband signal model with isotropic normal source prior and isotropic
 
 # Arguments
 * `n_samples::Int`: Number of samples of the received signal.
-* `Δx::AbstractVector`: Inter-sensor delay of the array in seconds.
-* `c::Real`: Propagation speed of the medium in m/s.
-* `fs::Real`: Sampling frequency in Hz.
+* `Δx::AbstractVector`: Relative sensor location [m].
+* `c::Real`: Propagation speed of the medium [m/s].
+* `fs::Real`: Sampling frequency [Hz].
 * `source_prior::UnivariateDistribution`: Prior on the SNR parameter (\$\\gamma_j\$ in the paper) of the sources.
 * `α::Real`: \$\\alpha\$ hyperparameter of the inerse-gamma prior on the signal standard deviation (\$\\sigma\$ in the paper; default: 0)
 * `β::Real` \$\\beta\$ hyperparameter of the inerse-gamma prior on the signal standard deviation (\$\\sigma\$ in the paper; default: 0)

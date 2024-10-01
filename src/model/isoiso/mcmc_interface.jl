@@ -40,6 +40,15 @@ function ReversibleJump.transition_mcmc(
     θ, ℓp, (mcmc_acceptance_rate=acc_rate,)
 end
 
+"""
+    WidebandIsoIsoMetropolis(phi_kernel, loglambda_kernel)
+
+Wrapper for Metropolis-Hastings (MH) kernels applied to `WidebandIsoIsoModel`.
+
+# Arguments
+- `phi_kernel::AbstractMetropolis`: MH kernel for the direction-of-arrival parameter \$\\phi\$.
+- `loglambda_kernel::AbstractMetropolis`: MH kernel for the SNR parameter \$\\log\\lambda\$.
+"""
 struct WidebandIsoIsoMetropolis{
     LK <: AbstractMetropolis,
     PK <: AbstractMetropolis

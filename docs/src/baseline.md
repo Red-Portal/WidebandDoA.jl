@@ -50,7 +50,7 @@ nothing
 Unfortunately, the original paper does not specify the sampling frequency and target frequency they used. 
 Therefore, we had to pick some arbitrary number for `fs` and `f0`.
 
-The $k = 3$ targets and their bandwidths are set as followS:
+The $k = 3$ targets and their bandwidths are set as follows:
 ```@example baseline
 ϕ   = [-30, 20, 24] / 180*π  # Direction-of-Arrivals
 Δf  = f0 - (17/32*f0)        # Signal bandwidth

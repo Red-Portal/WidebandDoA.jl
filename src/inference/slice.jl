@@ -1,6 +1,16 @@
 
 abstract type AbstractSliceSampling <: AbstractMCMC.AbstractSampler end
 
+"""
+    SliceDoublingOut(max_doubling_out, window)
+    SliceDoublingOut(window)
+
+Slice sampler with the doubling-out procedure.
+
+# Arguments
+- `max_stepping_out::Int`: Maximum number of doubling outs. (default: 8)
+- `window::AbstractVector`: Initial search interval window.
+"""
 struct SliceDoublingOut{W <: AbstractVector} <: AbstractSliceSampling
     max_doubling_out::Int
     window          ::W
@@ -8,6 +18,16 @@ end
 
 SliceDoublingOut(window::AbstractVector) = SliceDoublingOut(8, window)
 
+"""
+    SliceSteppingOut(max_stepping_out, window)
+    SliceSteppingOut(window)
+
+Slice sampler with the stepping-out procedure.
+
+# Arguments
+- `max_stepping_out::Int`: Maximum number of stepping outs. (default: 32)
+- `window::AbstractVector`: Initial search interval window.
+"""
 struct SliceSteppingOut{W <: AbstractVector} <: AbstractSliceSampling
     max_stepping_out::Int
     window          ::W
@@ -15,6 +35,14 @@ end
 
 SliceSteppingOut(window::AbstractVector) = SliceSteppingOut(32, window)
 
+"""
+    Slice(window)
+
+Slice sampler with fixed search interval.
+
+# Arguments
+- `window::AbstractVector`: Initial search interval window.
+"""
 struct Slice{W <: AbstractVector} <: AbstractSliceSampling
     window::W
 end

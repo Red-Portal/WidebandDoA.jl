@@ -9,7 +9,6 @@ DocMeta.setdocmeta!(WidebandDoA, :DocTestSetup, :(using WidebandDoA); recursive=
 
 makedocs(;
     modules=[WidebandDoA],
-    authors="Ray Kim <msca8h@naver.com> and contributors",
     repo="https://github.com/Red-Portal/WidebandDoA.jl/blob/{commit}{path}#{line}",
     sitename="WidebandDoA.jl",
     format=Documenter.HTML(;
@@ -20,8 +19,11 @@ makedocs(;
     ),
     pages=[
         "Home"                   => "index.md",
+        "General Usage"          => "general.md",
+        "Inference"              => "inference.md",
         "Demonstration"          => "demonstration.md",
         "Validation of Baseline" => "baseline.md",
+        "API"                    => "api.md"
     ],
 )
 

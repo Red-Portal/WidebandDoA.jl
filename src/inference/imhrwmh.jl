@@ -1,14 +1,42 @@
 
 abstract type AbstractMetropolis <: AbstractMCMC.AbstractSampler end
 
+"""
+    RandomWalkMetropolis(sigma) <: AbstractMetropolis
+
+Isotropic Gaussian random walk proposal.
+
+# Arguments
+- `sigma::Real`: Standard deviation of the Gaussian proposal.
+"""
 struct RandomWalkMetropolis{F <: Real} <: AbstractMetropolis
     sigma::F
 end
 
+"""
+    IndependentMetropolis(proposal) <: AbstractMetropolis
+
+Independent Metropolis Hastings sampler. (Also known as the independence sampler.)
+
+# Arguments
+- `proposal::UnivariateDistribution`: Univariate distribution.
+"""
 struct IndependentMetropolis{D <: UnivariateDistribution} <: AbstractMetropolis
     proposal::D
 end
 
+"""
+    MetropolisMixture(imh, rwmh; imh_weight) <: AbstractMetropolis
+
+Mixture kernel of an IMH kernel and RWMH kernel, as originally used by Andrieu and Doucet[^AD1999].
+
+[^AD1999]: Andrieu, Christophe, and Arnaud Doucet. "Joint Bayesian model selection and estimation of noisy sinusoids via reversible jump MCMC." *IEEE Transactions on Signal Processing* 47.10 (1999): 2667-2676.
+
+# Arguments
+- `imh::IndependentMetropolis`: IMH kernel.
+- `rwmh::RandomWalkMetropolis`: RWMH kernel.
+- `imh_weight::Real`: Mixture weight of selecting the IMH kernel. RWMH kernel is proposed with probability `1 - imh_weight` (default: 0.2)
+"""
 struct MetropolisMixture{
     F    <: Real,
     IMH  <: IndependentMetropolis,
