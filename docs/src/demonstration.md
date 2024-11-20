@@ -98,7 +98,7 @@ We are now ready to infer the posterior for this model.
 ## Inference with RJMCMC
 For inference, we will use the [`ReversibleJump`](https://github.com/Red-Portal/ReversibleJump.jl) package, which is the inference counterpart of this package.
 
-We use independent jump proposals with the uniform-log-normal auxiliary proposal distributions ($q(\gamma)$, $q(\gamma)$ in the paper) as done in the paper:
+We use independent jump proposals with the uniform-log-normal auxiliary proposal distributions ($q(\phi)$, $q(\gamma)$ in the paper) as done in the paper:
 ```@example demo
 using ReversibleJump
 
