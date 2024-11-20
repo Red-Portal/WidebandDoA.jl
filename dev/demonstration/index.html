@@ -21,26 +21,26 @@ y, x  = simulate_signal(
     rng, N, N*8, ϕ, snr, f_begin, f_end, fs, 1.0, Δx, c; visualize=false
 )
 y</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">256×20 Matrix{Float64}:
-  2.41246    3.69549    1.10596    …   1.84695     1.7737     0.418703
-  2.68291   -1.05793   -7.08541        0.531793    3.4001     0.861055
- -3.68362   -3.31913    1.44163        0.249689   -0.650966  -1.60778
- -1.49198    2.55914    2.78228       -0.961038   -3.06066   -0.391159
-  4.94762    2.82171   -1.14387        2.54853     0.925855   2.24827
-  1.58997   -2.82069   -2.59786    …  -0.834786    0.699774   1.06278
- -1.01383   -2.14011    0.526192       1.57032    -0.20184   -0.533264
-  0.354225   0.65065    1.60486        0.467703   -1.13893    0.313446
-  1.32736    0.563337   0.29374       -0.644735    0.739011  -0.07014
- -1.19477    1.34038    2.52541        0.701587    0.578681   0.331686
-  ⋮                                ⋱                         
-  2.72908    0.957976  -0.0409031      0.253025    4.93277    3.39725
- -0.482836  -2.31516    1.28286        3.55875     0.439965  -1.54402
- -1.23038    0.264423   1.92087       -2.63607    -3.67887   -4.22279
- -0.13223    1.59716    0.509606   …  -6.03903    -2.19505    3.77205
- -0.519696   0.253321  -0.532106       1.2894      1.76821    1.04304
-  0.898544   1.76963    1.56842        3.04477    -2.30516   -1.36028
-  2.23895    0.62674   -2.0964        -4.84704    -4.01007   -1.77704
-  1.55546   -1.37885   -2.77232        0.0178333   2.31962    1.71678
- -2.82873    0.283188   3.0903     …   4.12155     1.28721   -1.24501</code></pre><p>We can visualize the simulated signal through beamforming. Consider the Capon spectral estimator, more commonly known as minimum-variance distortionless response, or MVDR for short :</p><pre><code class="language-julia hljs">using Tullio
+  2.41268    3.69594    1.10652    …   1.84746    1.77406    0.418829
+  2.6832    -1.05787   -7.08544        0.531795   3.40024    0.861415
+ -3.68347   -3.31873    1.44214        0.250248  -0.650553  -1.6076
+ -1.49179    2.55911    2.78216       -0.961023  -3.0605    -0.390765
+  4.94765    2.822     -1.14346        2.54909    0.926269   2.24845
+  1.59004   -2.82084   -2.5981     …  -0.834809   0.699906   1.06315
+ -1.01393   -2.13994    0.526488       1.57082   -0.201475  -0.53313
+  0.354168   0.650365   1.60448        0.467595  -1.13887    0.313759
+  1.32715    0.563384   0.293914      -0.644324   0.739284  -0.0700972
+ -1.19494    1.33997    2.5249         0.70136    0.578626   0.331896
+  ⋮                                ⋱                        
+  2.72925    0.958283  -0.0405954      0.253108   4.93267    3.39696
+ -0.482729  -2.31521    1.28278        3.5585     0.439871  -1.54394
+ -1.23014    0.264802   1.92125       -2.63589   -3.67888   -4.22299
+ -0.132067   1.59717    0.509598   …  -6.03918   -2.19505    3.77222
+ -0.519421   0.253739  -0.531679       1.28968    1.76831    1.04294
+  0.898724   1.76966    1.56844        3.04472   -2.30506   -1.36001
+  2.23922    0.627158  -2.09597       -4.84669   -4.00989   -1.77705
+  1.55561   -1.37883   -2.7723         0.017852   2.3198     1.71712
+ -2.82849    0.283568   3.0907     …   4.12195    1.28745   -1.24495</code></pre><p>We can visualize the simulated signal through beamforming. Consider the Capon spectral estimator, more commonly known as minimum-variance distortionless response, or MVDR for short :</p><pre><code class="language-julia hljs">using Tullio
 using Plots
 
 include(&quot;../../scripts/baselines/common.jl&quot;)
@@ -89,66 +89,66 @@ samples</code></pre><pre class="documenter-example-output"><code class="nohighli
  [WidebandIsoIsoParam{Float64}(0.8087467725851902, 1.511385091418317)]
  [WidebandIsoIsoParam{Float64}(0.8087467725851902, 1.511385091418317)]
  [WidebandIsoIsoParam{Float64}(0.8087467725851902, 1.511385091418317)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
- [WidebandIsoIsoParam{Float64}(0.8027468875356609, -2.84554483137798)]
+ [WidebandIsoIsoParam{Float64}(0.8030181861034825, -1.2341152366120869)]
+ [WidebandIsoIsoParam{Float64}(0.7946613169973156, -1.2015284164451963)]
+ [WidebandIsoIsoParam{Float64}(0.7946613169973156, -1.2015284164451963)]
+ [WidebandIsoIsoParam{Float64}(0.7946613169973156, -1.2015284164451963)]
+ [WidebandIsoIsoParam{Float64}(0.7946613169973156, -1.2015284164451963)]
+ [WidebandIsoIsoParam{Float64}(0.7946613169973156, -1.2015284164451963)]
  ⋮
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]</code></pre><h2 id="Signal-Detection"><a class="docs-heading-anchor" href="#Signal-Detection">Signal Detection</a><a id="Signal-Detection-1"></a><a class="docs-heading-anchor-permalink" href="#Signal-Detection" title="Permalink"></a></h2><p>Detection can be performed by analyzing the posterior of the model order (<span>$k$</span>).</p><p>Here is the trace of the model order:</p><pre><code class="language-julia hljs">Plots.plot([stat.order for stat in stats],  xlabel=&quot;RJMCMC Iteration&quot;,  ylabel=&quot;Model order&quot;)
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0346983552722555, -2.7594283779502278), WidebandIsoIsoParam{Float64}(0.7843204419956291, -0.055719073993072576), WidebandIsoIsoParam{Float64}(-0.25936177089725104, -1.9560999204540406), WidebandIsoIsoParam{Float64}(0.519813839027897, -1.1379483792065435)]
+ [WidebandIsoIsoParam{Float64}(-1.0346983552722555, -2.7594283779502278), WidebandIsoIsoParam{Float64}(0.7843204419956291, -0.055719073993072576), WidebandIsoIsoParam{Float64}(-0.25936177089725104, -1.9560999204540406), WidebandIsoIsoParam{Float64}(0.519813839027897, -1.1379483792065435)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]</code></pre><h2 id="Signal-Detection"><a class="docs-heading-anchor" href="#Signal-Detection">Signal Detection</a><a id="Signal-Detection-1"></a><a class="docs-heading-anchor-permalink" href="#Signal-Detection" title="Permalink"></a></h2><p>Detection can be performed by analyzing the posterior of the model order (<span>$k$</span>).</p><p>Here is the trace of the model order:</p><pre><code class="language-julia hljs">Plots.plot([stat.order for stat in stats],  xlabel=&quot;RJMCMC Iteration&quot;,  ylabel=&quot;Model order&quot;)
 savefig(&quot;model_order_trace.svg&quot;)
 nothing</code></pre><p><img src="../model_order_trace.svg" alt/></p><p>And the histogram:</p><pre><code class="language-julia hljs">Plots.histogram([stat.order for stat in stats], xlabel=&quot;order&quot;, normed=true)
 savefig(&quot;model_order_hist.svg&quot;)
 nothing</code></pre><p><img src="../model_order_hist.svg" alt/></p><p>From the posterior, we can obtain point estimates of the model order <span>$k$</span>. In the paper, we use the median.</p><h2 id="DoA-Estimation"><a class="docs-heading-anchor" href="#DoA-Estimation">DoA Estimation</a><a id="DoA-Estimation-1"></a><a class="docs-heading-anchor-permalink" href="#DoA-Estimation" title="Permalink"></a></h2><p>Now, let&#39;s estimate the DoAs.</p><p>For this, we will discard the first 10% of the samples and only use the remaining samples.</p><pre><code class="language-julia hljs">burned = samples[n_samples ÷ 10:end]</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3601-element Vector{Vector{WidebandIsoIsoParam{Float64}}}:
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
- [WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912), WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085), WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453), WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825), WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033), WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)]
+ [WidebandIsoIsoParam{Float64}(0.781702323886521, -0.2222768068850423), WidebandIsoIsoParam{Float64}(-0.2622249640109023, -2.130304703548901), WidebandIsoIsoParam{Float64}(0.5231765157060034, -1.2584818620913216)]
+ [WidebandIsoIsoParam{Float64}(0.781702323886521, -0.2222768068850423), WidebandIsoIsoParam{Float64}(-0.2622249640109023, -2.130304703548901), WidebandIsoIsoParam{Float64}(0.5231765157060034, -1.2584818620913216)]
+ [WidebandIsoIsoParam{Float64}(0.781702323886521, -0.2222768068850423), WidebandIsoIsoParam{Float64}(-0.2622249640109023, -2.130304703548901), WidebandIsoIsoParam{Float64}(0.5231765157060034, -1.2584818620913216)]
  ⋮
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]
- [WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811), WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426), WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676), WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)]</code></pre><p><em>Bayesian model averaging</em> (BMA) correponds to flattening all the local variables:</p><pre><code class="language-julia hljs">flat = vcat(burned...)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">14404-element Vector{WidebandIsoIsoParam{Float64}}:
- WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912)
- WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085)
- WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453)
- WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)
- WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912)
- WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085)
- WidebandIsoIsoParam{Float64}(-1.0271769689185417, -2.8861672557280453)
- WidebandIsoIsoParam{Float64}(0.781154452395531, -0.3083110078293083)
- WidebandIsoIsoParam{Float64}(0.5227699302738016, -1.2924685642759912)
- WidebandIsoIsoParam{Float64}(-0.2628646716721509, -1.9231991996146085)
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0303497604886007, -2.8447749616850087), WidebandIsoIsoParam{Float64}(0.7837756456964959, -0.230704576742086), WidebandIsoIsoParam{Float64}(-0.2572979800805376, -2.074587389429687), WidebandIsoIsoParam{Float64}(0.5316393086481526, -1.0987142262996652)]
+ [WidebandIsoIsoParam{Float64}(-1.0346983552722555, -2.7594283779502278), WidebandIsoIsoParam{Float64}(0.7843204419956291, -0.055719073993072576), WidebandIsoIsoParam{Float64}(-0.25936177089725104, -1.9560999204540406), WidebandIsoIsoParam{Float64}(0.519813839027897, -1.1379483792065435)]
+ [WidebandIsoIsoParam{Float64}(-1.0346983552722555, -2.7594283779502278), WidebandIsoIsoParam{Float64}(0.7843204419956291, -0.055719073993072576), WidebandIsoIsoParam{Float64}(-0.25936177089725104, -1.9560999204540406), WidebandIsoIsoParam{Float64}(0.519813839027897, -1.1379483792065435)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]
+ [WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667), WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625), WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767), WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)]</code></pre><p><em>Bayesian model averaging</em> (BMA) correponds to flattening all the local variables:</p><pre><code class="language-julia hljs">flat = vcat(burned...)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">14164-element Vector{WidebandIsoIsoParam{Float64}}:
+ WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825)
+ WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033)
+ WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)
+ WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825)
+ WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033)
+ WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)
+ WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825)
+ WidebandIsoIsoParam{Float64}(-0.2583382810851599, -1.9297386910840033)
+ WidebandIsoIsoParam{Float64}(0.5271535608503864, -1.4359605575254837)
+ WidebandIsoIsoParam{Float64}(0.7831985288652852, -0.3414974415227825)
  ⋮
- WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)
- WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811)
- WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426)
- WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676)
- WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)
- WidebandIsoIsoParam{Float64}(0.5290935912170005, -1.230642742679811)
- WidebandIsoIsoParam{Float64}(-0.2583726617047641, -1.831938937475426)
- WidebandIsoIsoParam{Float64}(-1.019947303122458, -2.674074001457676)
- WidebandIsoIsoParam{Float64}(0.7825588258415822, -0.06651109916689418)</code></pre><p>On the other hand, <em>Bayesian model selection</em> corresponds to selecting the samples that have a specific model order.</p><p>Here is the marginal posterior of the DoAs:</p><pre><code class="language-julia hljs">Plots.histogram([θ.phi for θ in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel=&quot;DoA (ϕ)&quot;, label=&quot;Posterior&quot;, ylabel=&quot;Density&quot;)
+ WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)
+ WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667)
+ WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625)
+ WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767)
+ WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)
+ WidebandIsoIsoParam{Float64}(-1.0402035664145473, -2.801772829275667)
+ WidebandIsoIsoParam{Float64}(0.7844411983738, -0.25795880142627625)
+ WidebandIsoIsoParam{Float64}(-0.25809764575908156, -1.8794606254578767)
+ WidebandIsoIsoParam{Float64}(0.5228386279097865, -1.3842304528188003)</code></pre><p>On the other hand, <em>Bayesian model selection</em> corresponds to selecting the samples that have a specific model order.</p><p>Here is the marginal posterior of the DoAs:</p><pre><code class="language-julia hljs">Plots.histogram([θ.phi for θ in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel=&quot;DoA (ϕ)&quot;, label=&quot;Posterior&quot;, ylabel=&quot;Density&quot;)
 Plots.vline!(ϕ, label=&quot;True&quot;, color=:red, linestyle=:dash)
 savefig(&quot;doa_hist.svg&quot;)
 nothing</code></pre><p><img src="../doa_hist.svg" alt/></p><p>Unfortunately, this does not yield the DoA posterior corresponding to each <em>source</em>. For this, we turn to the relabeling algorithm by Roodaki <em>et al.</em><sup class="footnote-reference"><a id="citeref-RBF2014" href="#footnote-RBF2014">[RBF2014]</a></sup>. This algorithm fits a Gaussian mixture model on the histogram above. It also generates labels for each local variable, so that we can label variable other than just the DoAs. For this though, we have to choose the number of mixture components.  Roodaki <em>et al.</em> recommend the 80% or 90% upper percentile of the posterior:</p><pre><code class="language-julia hljs">k_mixture = quantile([stat.order for stat in stats], 0.9) |&gt; Base.Fix1(round, Int)
@@ -157,10 +157,10 @@ mixture, labels = WidebandDoA.relabel(
     rng, ϕ_post, k_mixture; show_progress=false
 )
 mixture</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">MixtureModel{Distributions.Normal{Float64}}(K = 4)
-components[1] (prior = 0.2500): Distributions.Normal{Float64}(μ=-1.037916786731775, σ=0.011272917614835436)
-components[2] (prior = 0.2500): Distributions.Normal{Float64}(μ=-0.2589917381372735, σ=0.0027930736757412395)
-components[3] (prior = 0.2500): Distributions.Normal{Float64}(μ=0.5254654212761981, σ=0.003045342957594279)
-components[4] (prior = 0.2500): Distributions.Normal{Float64}(μ=0.7829572135516365, σ=0.0013850208821611862)
+components[1] (prior = 0.2358): Distributions.Normal{Float64}(μ=-1.0348530609477118, σ=0.012243993061575375)
+components[2] (prior = 0.2547): Distributions.Normal{Float64}(μ=-0.2592017530212177, σ=0.0030004293668731263)
+components[3] (prior = 0.2547): Distributions.Normal{Float64}(μ=0.5256595348615929, σ=0.0030024841179694833)
+components[4] (prior = 0.2547): Distributions.Normal{Float64}(μ=0.7829513754465836, σ=0.0015906165067898713)
 </code></pre><p>Let&#39;s check that the Gaussian mixture approximation is accurate. This can be done by comparing the marginal density of the mixture against the histogram:</p><pre><code class="language-julia hljs">using StatsPlots
 
 Plots.stephist([θ.phi for θ in flat], normed=true, bins=256, xlims=[-π/2, π/2], xlabel=&quot;DoA (ϕ)&quot;, ylabel=&quot;Density&quot;, label=&quot;Posterior&quot;, fill=true)
@@ -216,4 +216,4 @@ savefig(&quot;recon_samples.svg&quot;)
 nothing</code></pre><p><img src="../recon_samples.svg" alt/></p><p>Finally, let&#39;s compare the MMSE against the ground truth <code>x</code>.</p><pre><code class="language-julia hljs">Plots.plot( x_mmse, layout=(4,1), label=&quot;MMSE&quot;, xlabel=&quot;Sample Index&quot;)
 Plots.plot!(x,      layout=(4,1), label=&quot;True&quot;, xlabel=&quot;Sample Index&quot;)
 savefig(&quot;recon_mmse_comparison.svg&quot;)
-nothing</code></pre><p><img src="../recon_mmse_comparison.svg" alt/></p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-N2003"><a class="tag is-link" href="#citeref-N2003">N2003</a>Neal, Radford M. &quot;Slice sampling.&quot; The annals of statistics 31.3 (2003): 705-767.</li><li class="footnote" id="footnote-GD2020"><a class="tag is-link" href="#citeref-GD2020">GD2020</a>Gagnon, Philippe, and Arnaud Doucet. &quot;Nonreversible jump algorithms for Bayesian nested model selection.&quot; Journal of Computational and Graphical Statistics 30.2 (2020): 312-323.</li><li class="footnote" id="footnote-RBF2014"><a class="tag is-link" href="#citeref-RBF2014">RBF2014</a>Roodaki, Alireza, Julien Bect, and Gilles Fleury. &quot;Relabeling and summarizing posterior distributions in signal decomposition problems when the number of components is unknown.&quot; <em>IEEE Transactions on Signal Processing</em> (2014).</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../inference/">« Inference</a><a class="docs-footer-nextpage" href="../baseline/">Validation of Baseline »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.7.0 on <span class="colophon-date" title="Tuesday 1 October 2024 05:24">Tuesday 1 October 2024</span>. Using Julia version 1.10.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+nothing</code></pre><p><img src="../recon_mmse_comparison.svg" alt/></p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-N2003"><a class="tag is-link" href="#citeref-N2003">N2003</a>Neal, Radford M. &quot;Slice sampling.&quot; The annals of statistics 31.3 (2003): 705-767.</li><li class="footnote" id="footnote-GD2020"><a class="tag is-link" href="#citeref-GD2020">GD2020</a>Gagnon, Philippe, and Arnaud Doucet. &quot;Nonreversible jump algorithms for Bayesian nested model selection.&quot; Journal of Computational and Graphical Statistics 30.2 (2020): 312-323.</li><li class="footnote" id="footnote-RBF2014"><a class="tag is-link" href="#citeref-RBF2014">RBF2014</a>Roodaki, Alireza, Julien Bect, and Gilles Fleury. &quot;Relabeling and summarizing posterior distributions in signal decomposition problems when the number of components is unknown.&quot; <em>IEEE Transactions on Signal Processing</em> (2014).</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../inference/">« Inference</a><a class="docs-footer-nextpage" href="../baseline/">Validation of Baseline »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Wednesday 20 November 2024 19:57">Wednesday 20 November 2024</span>. Using Julia version 1.11.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
