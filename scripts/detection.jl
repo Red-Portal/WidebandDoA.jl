@@ -536,3 +536,58 @@ function process_data()
         end
     end
 end
+
+function process_data_computation_time()
+    h5open(datadir("pro", "execution_time.h5"), "w") do io
+        for snr in [-4, -8]
+        nsnap = 8
+
+        df = mapreduce(vcat, 0:2:8) do k
+            name = if k == 0
+                "detection_null"
+            else
+                "detection_wideband_k=$(k)"
+            end
+            df, setup = JLD2.load(datadir("raw", name*".jld2"), "data", "setup")
+            @info("setup", setup...)
+            if k == 0
+                @chain df begin
+                    @subset(:nsnap .== nsnap)
+                    @transform(:k = k)
+                    @select(:method, :time, :k)
+                end
+            else
+                @chain df begin
+                    @subset(:nsnap .== nsnap, :snr .== snr)
+                    @transform(:k = k)
+                    @select(:method, :time, :k)
+                end
+            end
+        end
+
+        df_rjmcmc    = statistics(@subset(df, :method .== Symbol("rjmcmc")), :k, :time)
+        df_likeratio = statistics(@subset(df, :method .== Symbol("likeratio")), :k, :time)
+        df_aic       = statistics(@subset(df, :method .== Symbol("aic")), :k, :time)
+        df_bic       = statistics(@subset(df, :method .== Symbol("bic")), :k, :time)
+        
+        Plots.plot( df_rjmcmc.k,    df_rjmcmc.time_mean,    yscale=:log10) |> display
+        Plots.plot!(df_likeratio.k, df_likeratio.time_mean, yscale=:log10) |> display
+        Plots.plot!(df_aic.k,       df_aic.time_mean,       yscale=:log10) |> display
+        Plots.plot!(df_bic.k,       df_bic.time_mean,       yscale=:log10) |> display
+
+        x_rjmcmc, y_rjmcmc       = process_plot_series(df_rjmcmc, :time, :k, )
+        x_likeratio, y_likeratio = process_plot_series(df_likeratio, :time, :k)
+        x_aic, y_aic             = process_plot_series(df_aic, :time, :k)
+        x_bic, y_bic             = process_plot_series(df_bic, :time, :k)
+
+        write(io, "x_rjmcmc_$(snr)", x_rjmcmc)
+        write(io, "y_rjmcmc_$(snr)", y_rjmcmc)
+        write(io, "x_likeratio_$(snr)", x_likeratio)
+        write(io, "y_likeratio_$(snr)", y_likeratio)
+        write(io, "x_aic_$(snr)", x_aic)
+        write(io, "y_aic_$(snr)", y_aic)
+        write(io, "x_bic_$(snr)", x_bic)
+        write(io, "y_bic_$(snr)", y_bic)
+        end
+    end
+end
