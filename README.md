@@ -11,7 +11,7 @@ This repository provides the code to reproduce the paper:
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/Red-Portal/ReversibleJump.jl.git")
+Pkg.add(url="https://github.com/Red-Portal/ReversibleJump.jl.git", rev=0.1.0)
 Pkg.add(url="https://github.com/Red-Portal/WidebandDoA.jl.git")
 ```
 
@@ -20,7 +20,7 @@ First, go to the root director of `WidebandDoA`, and execute the following:
 ```julia
 using Pkg
 Pkg.activate("test")
-Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git")
+Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git", rev=0.1.0)
 Pkg.develop(url="https://github.com/Red-Portal/MCMCTesting.jl.git")
 ```
 This is necessary because Julia's test runner is not a fan of unregistered packages like `ReversibleJump` and `MCMCTesting`.
