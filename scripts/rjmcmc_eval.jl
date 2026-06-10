@@ -111,9 +111,9 @@ function run_simulation(
 end
 
 function main()
-    n_burn_truepost    = 2^12
-    n_samples_truepost = 2^12
-    n_chains           = 64
+    n_burn_truepost    = 2^17
+    n_samples_truepost = 2^17
+    n_chains           = 2^10
     n_samples          = 2^12
     n_reps             = 4
 
