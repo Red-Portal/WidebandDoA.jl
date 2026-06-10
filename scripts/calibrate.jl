@@ -5,6 +5,7 @@ using Plots, StatsPlots
 using ProgressMeter
 using Random, Random123
 using JLD2
+using HDF5
 
 include("common.jl")
 
@@ -13,7 +14,7 @@ function run_rjmcmc(rng, cond, n_samples, n_burn)
     initial_params = WidebandDoA.WidebandIsoIsoParam{Float64}[]
     initial_order  = 0
 
-    prop   = UniformNormalLocalProposal(0.0, 1.0)
+    prop   = UniformNormalLocalProposal(0.0, 2.0)
     mcmc   = SliceSteppingOut([2.0, 2.0])
     jump   = IndepJumpProposal(prop)
     rjmcmc = ReversibleJump.NonReversibleJumpMCMC(jump, mcmc; jump_rate=0.9)
@@ -63,17 +64,17 @@ end
 function run_simulation()
     n_samples = 2^12
     n_burn    = 2^7
-    n_reps    = 2^7
+    n_reps    = 2^8
 
     # name    = "fullband"
     # ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
-    # fs      = 2000.0
+    # fs      = 3000.0
     # f_begin = 0.0
     # f_end   = fs/2
 
     name    = "bandlimited"
     ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
-    fs      = 2000.0
+    fs      = 3000.0
     f_begin = [200,300,400,500,600]
     f_end   = [300,400,500,600,700]
 
@@ -90,7 +91,7 @@ function run_simulation()
         (dist="lognormal",    param1=1.5,   param2=0.6),
     ]
 
-    snrs = [-10, -8., -6, -4., -2, 0., 2, 4., 6, 8., 10]
+    snrs = -10:1:10
     snrs = [(snr=snr,) for snr in snrs]
 
     configs = Iterators.product(prior, snrs) |> collect
@@ -134,10 +135,14 @@ function run_simulation()
 end
 
 function process_data()
-    df = JLD2.load(datadir("raw", "calibration_error_fullband.jld2"), "data")
+    fname = "bandlimited"
+    #fname = "fullband"
+    df = JLD2.load(datadir("raw", "calibration_error_$(fname).jld2"), "data")
     display(df)
     Plots.plot() |> display
     
+    h5open(datadir("pro", "calibration_error_$(fname).h5"), "w") do h5
+
     for (distname, param1, param2, dist) in [
         ("lognormal",    1.3,   1.2,  LogNormal(1.3, 1.2)),
         ("lognormal",    5.3,   2.3,  LogNormal(5.3, 2.3)),
@@ -164,12 +169,21 @@ function process_data()
             Array
         end
         display(res)
-        xrange = -10:2:10
+        xrange = -10:1:10 |> collect
         Plots.plot!(
             xrange, res[:,1],
             ribbon=(abs.(res[:,2]), res[:,3]),
             label="$(distname)($(param1), $(param2))"
         ) |> display
-        #Plots.plot!(xrange, x -> 5*pdf(dist, 10^(x/10))) |> display
+        Plots.plot!(xrange, x -> 5*pdf(dist, 10^(x/10)), label=nothing) |> display
+
+        y       = res[:,1]
+        y_upper = @. abs(res[:,3])
+        y_lower = @. abs(res[:,2])
+
+        write(h5, "$(distname)_$(param1)_$(param2)_x", xrange)
+        write(h5, "$(distname)_$(param1)_$(param2)_y", hcat(y, y_upper, y_lower)' |> Array)
+    end
+
     end
 end
