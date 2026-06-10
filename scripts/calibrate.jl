@@ -63,28 +63,28 @@ end
 
 function run_simulation()
     n_samples = 2^12
-    n_burn    = 2^7
-    n_reps    = 2^8
+    n_burn    = 2^10
+    n_reps    = 2^6
 
-    # name    = "fullband"
-    # ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
-    # fs      = 3000.0
-    # f_begin = 0.0
-    # f_end   = fs/2
-
-    name    = "bandlimited"
-    ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
+    name    = "fullband"
+    ϕ     = [-0.8, -0.4, 0.0, 0.4, 0.8]
     fs      = 3000.0
-    f_begin = [200,300,400,500,600]
-    f_end   = [300,400,500,600,700]
+    f_begin = 0.0
+    f_end   = fs/2
+
+    #name    = "bandlimited"
+    #ϕ       = [-0.8, -0.4, 0.0, 0.4, 0.8]
+    #fs      = 3000.0
+    #f_begin = [200,300,400,500,600]
+    #f_end   = [300,400,500,600,700]
 
     prior = [
         (dist="inversegamma", param1=0.1,   param2=0.1),
         (dist="inversegamma", param1=0.01,  param2=0.01),
         (dist="inversegamma", param1=0.001, param2=0.001),
-        (dist="uniform",      param1=0.1,   param2=10.0),
-        (dist="uniform",      param1=0.01,  param2=100.0),
-        (dist="uniform",      param1=0.5,   param2=5.0),
+        #(dist="uniform",      param1=0.1,   param2=10.0),
+        #(dist="uniform",      param1=0.01,  param2=100.0),
+        #(dist="uniform",      param1=0.5,   param2=5.0),
         (dist="lognormal",    param1=1.3,   param2=1.2),
         (dist="lognormal",    param1=5.3,   param2=2.3),
         (dist="lognormal",    param1=-0.8,  param2=0.6),
