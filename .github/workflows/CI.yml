@@ -61,7 +61,9 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Pkg
+          Pkg.add(url="https://github.com/Red-Portal/ReversibleJump.jl.git", rev="v0.1.0")
           Pkg.develop(PackageSpec(path=pwd()))
+          Pkg.develop("ReversibleJump")
           Pkg.instantiate()
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
