@@ -2,13 +2,14 @@
 using AbstractMCMC
 using Accessors
 using Base.GC
-using DataFrames
+using DataFrames, DataFramesMeta
 using Distributed
 using Distributions
 using DrWatson
 using HDF5
 using MCMCDiagnosticTools
 using OnlineStats
+using Plots 
 using ProgressMeter
 using Random, Random123
 using ReversibleJump
@@ -176,4 +177,28 @@ function main()
     #reduce_namedtuples(
     #    arr -> run_bootstrap(arr; confint_strategy=BCaConfInt(0.95)), stats
     #)
+end
+
+function process_data()
+    df = load(datadir("raw", "rjmcmc_eval.jld2"), "data")
+    h5open(datadir("pro", "rjmcmc_eval.h5"), "w") do h5
+        for rjmcmc in ["rjmcmc", "nrjmcmc"],
+            mcmc in ["slice", "hybrid"],
+            snr in [-8, -4, 0, 4],
+            n_targets in [2, 8]
+            sub = @subset(
+                df,
+                :rjmcmc        .== rjmcmc    .&&
+                    :mcmc      .== mcmc      .&&
+                    :snr       .== snr       .&&
+                    :n_targets .== n_targets
+            )
+            data = hcat(
+                only(sub.tv_curve_mean),
+                only(sub.tv_curve_minus),
+                only(sub.tv_curve_plus)
+            )
+            write(h5, "$(rjmcmc)_$(mcmc)_$(snr)_$(n_targets)", Array(data'))
+        end
+    end
 end
