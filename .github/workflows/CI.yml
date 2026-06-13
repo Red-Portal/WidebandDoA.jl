@@ -36,7 +36,7 @@ jobs:
         shell: julia --project=. --color=yes {0}
         run: |
           using Pkg
-          Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git")
+          Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git", rev="v0.1")
           Pkg.instantiate()
       - uses: julia-actions/cache@v1
       - uses: julia-actions/julia-buildpkg@v1
@@ -56,7 +56,7 @@ jobs:
         shell: julia --project=. --color=yes {0}
         run: |
           using Pkg
-          Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git")
+          Pkg.develop(url="https://github.com/Red-Portal/ReversibleJump.jl.git", rev="v0.1")
       - name: Configure doc environment
         shell: julia --project=docs --color=yes {0}
         run: |
